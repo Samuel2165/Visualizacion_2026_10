@@ -1,0 +1,400 @@
+---
+title: "Análisis Exploratorio de Datos: Suicidios en Colombia (2021)"
+author: "Samuel Gómez & Jacobo Petelli"
+format:
+  pdf:
+    documentclass: IEEEtran
+    classoption: conference
+    papersize: letter
+    include-in-header:
+      text: |
+        \usepackage{float}
+lang: es
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Introducción
+
+Este documento presenta un análisis exploratorio de datos (EDA) sobre los incidentes de intentos de suicidio y suicidios registrados en Colombia durante el año 2021. Los datos incluyen información por semana epidemiológica, municipio, departamento y conteo de casos.
+
+A continuación, exploraremos visualmente algunas tendencias y distribuciones en los datos para comprender mejor este fenómeno de salud pública.
+
+```{r setup, include=FALSE}
+# Cargar librerías necesarias
+library(tidyverse)
+library(scales)
+library(lubridate)
+library(sf)
+
+tema_eda <- theme_minimal(base_size = 11) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "bottom"
+  )
+
+# Función auxiliar para estandarizar nombres de departamentos
+normalizar_depto <- function(x) {
+  y <- x |>
+    iconv(to = "ASCII//TRANSLIT") |>
+    str_to_upper() |>
+    str_squish() |>
+    str_replace_all("[^A-Z0-9 ]", "")
+
+  case_when(
+    y == "BOGOTA DC" ~ "BOGOTA",
+    y == "NORTE DE SANTANDER" ~ "NORTE SANTANDER",
+    y == "LA GUAJIRA" ~ "GUAJIRA",
+    y == "VALLE DEL CAUCA" ~ "VALLE",
+    str_detect(y, "SAN ANDRES") ~ "SAN ANDRES",
+    TRUE ~ y
+  )
+}
+
+# Leer los datos
+datos <- read_csv("data/datos_suicidios_2021.csv", show_col_types = FALSE)
+
+# Preprocesamiento básico
+# Convertir nombres a factores y corregir formatos si es necesario
+datos <- datos |>
+  mutate(
+    SEMANA = as.numeric(SEMANA),
+    Departamento_ocurrencia = as.factor(Departamento_ocurrencia),
+    Nombre_evento = as.factor(Nombre_evento),
+    conteo = as.numeric(conteo),
+    depto_std = normalizar_depto(Departamento_ocurrencia)
+  )
+
+# Resumen por semana y departamento para visualizaciones
+resumen_semanal_dept <- datos |>
+  group_by(SEMANA, Departamento_ocurrencia, Nombre_evento) |>
+  summarise(total_casos = sum(conteo, na.rm = TRUE), .groups = "drop")
+
+# Resumen por semana y tipo de evento
+resumen_evento_semana <- datos |>
+  group_by(SEMANA, Nombre_evento) |>
+  summarise(total_casos = sum(conteo, na.rm = TRUE), .groups = "drop")
+
+# Base poblacional departamental (total por departamento)
+poblacion_dept <- read_csv("data/poblacion_colombia_2020.csv", show_col_types = FALSE) |>
+  filter(sexo == "0,") |>
+  group_by(departamento) |>
+  summarise(poblacion = sum(valor, na.rm = TRUE), .groups = "drop") |>
+  mutate(depto_std = normalizar_depto(departamento))
+```
+
+## Calidad y cobertura de los datos
+
+Antes de profundizar en patrones temporales y geográficos, es útil revisar indicadores básicos de cobertura del dataset.
+
+```{r}
+#| results: asis
+
+indicadores_calidad <- datos |>
+  summarise(
+    filas = n(),
+    casos_totales = sum(conteo, na.rm = TRUE),
+    semanas_reportadas = n_distinct(SEMANA),
+    departamentos_reportados = n_distinct(Departamento_ocurrencia),
+    municipios_reportados = n_distinct(Municipio_ocurrencia),
+    pct_filas_con_na = mean(if_any(everything(), is.na))
+  ) |>
+  mutate(
+    pct_filas_con_na = percent(pct_filas_con_na, accuracy = 0.01)
+  )
+
+indicadores_calidad |>
+  mutate(across(everything(), as.character)) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = "indicador",
+    values_to = "valor"
+  ) |>
+  mutate(
+    indicador = recode(
+      indicador,
+      filas = "Filas",
+      casos_totales = "Casos totales",
+      semanas_reportadas = "Semanas reportadas",
+      departamentos_reportados = "Departamentos reportados",
+      municipios_reportados = "Municipios reportados",
+      pct_filas_con_na = "% filas con NA"
+    )
+  ) |>
+  knitr::kable(
+    format = "latex",
+    caption = "Indicadores básicos de cobertura y completitud",
+    booktabs = TRUE,
+    longtable = FALSE,
+    position = "H",
+    align = c("l", "r"),
+    col.names = c("Indicador", "Valor")
+  )
+```
+
+```{r}
+#| results: asis
+
+semanas_pico <- datos |>
+  group_by(SEMANA) |>
+  summarise(casos = sum(conteo, na.rm = TRUE), .groups = "drop") |>
+  mutate(participacion = casos / sum(casos)) |>
+  slice_max(casos, n = 6) |>
+  arrange(desc(casos)) |>
+  mutate(participacion = percent(participacion, accuracy = 0.01))
+
+semanas_pico |>
+  knitr::kable(
+    format = "latex",
+    caption = "Semanas epidemiológicas con mayor número de casos",
+    booktabs = TRUE,
+    longtable = FALSE,
+    position = "H",
+    align = c("r", "r", "r")
+  )
+```
+
+## Exploración Temporal: Gráfico de Áreas Apiladas (Stream Chart)
+
+El siguiente gráfico ilustra la evolución temporal de los casos reportados a lo largo de las semanas epidemiológicas de 2021, desglosado por departamento. Este tipo de visualización permite observar cómo cambia el volumen de incidentes en diferentes regiones a lo largo del tiempo.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 5
+#| fig-cap: "Evolución semanal de casos por departamento"
+
+# Seleccionar los departamentos con más casos para que el gráfico sea legible
+top_depts <- resumen_semanal_dept |>
+  group_by(Departamento_ocurrencia) |>
+  summarise(total = sum(total_casos), .groups = "drop") |>
+  slice_max(order_by = total, n = 8) |>
+  pull(Departamento_ocurrencia)
+
+# Filtrar para los top departamentos
+datos_stream <- resumen_semanal_dept |>
+  filter(Departamento_ocurrencia %in% top_depts)
+
+etiquetas_stream <- datos_stream |>
+  filter(SEMANA == max(SEMANA)) |>
+  mutate(prop = total_casos / sum(total_casos)) |>
+  arrange(Departamento_ocurrencia) |>
+  mutate(
+    y_pos = cumsum(prop) - prop / 2,
+    etiqueta = paste0(Departamento_ocurrencia, ": ", percent(prop, accuracy = 0.1))
+  )
+
+# Crear el stream chart (utilizando áreas apiladas ante la ausencia de ggstream)
+ggplot(datos_stream, aes(x = SEMANA, y = total_casos, fill = Departamento_ocurrencia)) +
+  geom_area(position = "fill", alpha = 0.8) + # proportional para ver la participación relativa
+  geom_text(
+    data = etiquetas_stream,
+    aes(x = SEMANA + 0.7, y = y_pos, label = etiqueta),
+    inherit.aes = FALSE,
+    hjust = 0,
+    size = 2.6
+  ) +
+  coord_cartesian(xlim = c(min(datos_stream$SEMANA), max(datos_stream$SEMANA) + 7), clip = "off") +
+  scale_fill_viridis_d(option = "turbo") +
+  tema_eda +
+  labs(
+    title = "Proporción de Casos por Semana y Departamento (Top 8)",
+    x = "Semana Epidemiológica",
+    y = "Proporción del Total de Casos",
+    fill = "Departamento"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(5.5, 120, 5.5, 5.5)
+  )
+```
+
+
+## Exploración Geográfica: Gráfico de Dispersión (Scatterplot)
+
+A continuación, presentamos un gráfico de dispersión que muestra la relación entre la variabilidad semanal (desviación estándar de casos) y el volumen total anual de casos por cada departamento. Esto nos ayuda a identificar regiones con altos reportes constantes versus aquellas con picos esporádicos.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+#| fig-cap: "Volumen Total Anual vs Variabilidad Semanal por Departamento"
+
+# Calcular métricas resumen por departamento
+metricas_dept <- resumen_semanal_dept |>
+  group_by(Departamento_ocurrencia) |>
+  summarise(
+    total_anual = sum(total_casos),
+    variabilidad_semanal = sd(total_casos, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+    # Eliminar posibles NAs (ej. si algun dept solo tiene 1 semana con reporte)
+    replace_na(list(variabilidad_semanal = 0))
+
+# Evitar infinitos en escala logarítmica
+metricas_dept_log <- metricas_dept |>
+  filter(total_anual > 0, variabilidad_semanal > 0)
+
+
+# Crear el scatterplot
+ggplot(metricas_dept_log, aes(x = total_anual, y = variabilidad_semanal, label = Departamento_ocurrencia)) +
+  geom_point(color = "steelblue", size = 3, alpha = 0.7) +
+  # Añadir etiquetas solo a los casos más altos para evitar sobreposición
+  geom_text(data = metricas_dept_log |> filter(total_anual > quantile(total_anual, 0.75) | variabilidad_semanal > quantile(variabilidad_semanal, 0.75)), 
+            vjust = -0.5, size = 3, check_overlap = TRUE) +
+  scale_x_log10(labels = scales::comma) +
+  scale_y_log10(labels = scales::comma) +
+  tema_eda +
+  labs(
+    title = "Comparación de Casos: Volumen Total vs Variabilidad (Escala Logarítmica)",
+    subtitle = "Departamentos con mayor total anual también muestran mayor variabilidad semanal",
+    x = "Total Anual de Casos (Log)",
+    y = "Variabilidad Semanal (Desviación Estándar, Log)"
+  )
+
+```
+
+## Tendencia temporal semanal (total nacional)
+
+Como en este dataset hay una sola categoría de evento, es más coherente analizar la serie agregada nacional por semana.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 5
+#| fig-cap: "Tendencia semanal de casos totales con puntos clave"
+
+serie_semanal <- datos |>
+  group_by(SEMANA) |>
+  summarise(total_casos = sum(conteo, na.rm = TRUE), .groups = "drop")
+
+puntos_clave <- serie_semanal |>
+  filter(total_casos == max(total_casos) | total_casos == min(total_casos)) |>
+  distinct(SEMANA, .keep_all = TRUE)
+
+ggplot(serie_semanal, aes(x = SEMANA, y = total_casos)) +
+  geom_line(linewidth = 1, color = "#1f77b4") +
+  geom_point(color = "#1f77b4", size = 1.8) +
+  geom_text(
+    data = puntos_clave,
+    aes(label = paste0("Sem ", SEMANA, ": ", comma(total_casos))),
+    vjust = -0.8,
+    size = 3
+  ) +
+  tema_eda +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Evolución semanal de casos totales",
+    subtitle = "Se destacan la semana de mayor y menor reporte",
+    x = "Semana epidemiológica",
+    y = "Casos reportados"
+  )
+```
+
+## Tasa por 100 mil habitantes (ajuste por tamaño poblacional)
+
+El volumen absoluto de casos está influenciado por el tamaño poblacional. Para hacer comparaciones territoriales más justas, se calcula una tasa anual aproximada por cada 100 mil habitantes usando la base poblacional 2020.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+#| fig-cap: "Top 12 departamentos por tasa anual estimada de casos por 100 mil habitantes"
+
+tasas_dept <- datos |>
+  filter(depto_std != "EXTERIOR") |>
+  group_by(depto_std) |>
+  summarise(total_casos = sum(conteo, na.rm = TRUE), .groups = "drop") |>
+  left_join(poblacion_dept |> select(depto_std, poblacion), by = "depto_std") |>
+  mutate(tasa_100k = total_casos / poblacion * 100000) |>
+  filter(!is.na(tasa_100k))
+
+tasas_top <- tasas_dept |>
+  slice_max(order_by = tasa_100k, n = 12) |>
+  arrange(tasa_100k)
+
+ggplot(tasas_top, aes(x = tasa_100k, y = fct_reorder(depto_std, tasa_100k))) +
+  geom_col(fill = "firebrick", alpha = 0.85) +
+  geom_text(
+    aes(label = round(tasa_100k, 1)),
+    hjust = -0.15,
+    size = 3
+  ) +
+  scale_x_continuous(labels = number_format(accuracy = 0.1)) +
+  tema_eda +
+  coord_cartesian(xlim = c(0, max(tasas_top$tasa_100k) * 1.15)) +
+  labs(
+    title = "Departamentos con mayor carga relativa",
+    subtitle = "Tasa anual estimada por 100 mil habitantes",
+    x = "Tasa por 100 mil habitantes",
+    y = "Departamento"
+  )
+```
+
+## Mapa coroplético departamental (tasa per cápita)
+
+Para visualizar la severidad relativa en el territorio, se integra el shapefile oficial departamental y se colorea por tasa anual estimada por 100 mil habitantes.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+#| fig-cap: "Mapa departamental de tasa anual estimada por 100 mil habitantes"
+
+mapa_dptos <- st_read(
+  "/Users/SamuelGomez/Documents/Archivos de Gráficos/MGN2024_00_COLOMBIA/ADMINISTRATIVO/MGN_ADM_DPTO_POLITICO.shp",
+  quiet = TRUE
+) |>
+  mutate(depto_std = normalizar_depto(dpto_cnmbr)) |>
+  left_join(tasas_dept |> select(depto_std, tasa_100k), by = "depto_std")
+
+ggplot(mapa_dptos) +
+  geom_sf(aes(fill = tasa_100k), color = "white", linewidth = 0.15) +
+  scale_fill_viridis_c(
+    option = "C",
+    na.value = "grey90",
+    labels = number_format(accuracy = 0.1),
+    name = "Tasa\npor 100k"
+  ) +
+  tema_eda +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+  ) +
+  labs(
+    title = "Distribución territorial de la carga relativa",
+    subtitle = "Departamentos con mayor intensidad per cápita resaltan en tonos más oscuros"
+  )
+```
+
+```{r}
+#| results: asis
+
+tasas_dept |>
+  arrange(desc(tasa_100k)) |>
+  slice_head(n = 10) |>
+  transmute(
+    departamento = depto_std,
+    casos = total_casos,
+    poblacion,
+    tasa_100k = round(tasa_100k, 1)
+  ) |>
+  knitr::kable(
+    format = "latex",
+    caption = "Top 10 por tasa por 100 mil habitantes (tabla de referencia)",
+    booktabs = TRUE,
+    longtable = FALSE,
+    position = "H",
+    align = c("l", "r", "r", "r")
+  )
+```
+
+## Conclusiones Preliminares
+
+*   Las visualizaciones muestran claras diferencias en los reportes a nivel departamental.
+*   El *Gráfico de Corriente* evidencia que algunos departamentos mantienen una proporción estable a lo largo de las semanas, mientras que otros muestran ligeras fluctuaciones estacionales.
+*   Los indicadores de cobertura sugieren una base amplia (52 semanas, 34 unidades departamentales y 945 municipios reportados), útil para análisis descriptivos nacionales.
+*   La serie por tipo de evento permite identificar si los picos semanales obedecen a un solo fenómeno o a una dinámica compartida entre categorías.
+*   El ajuste por población cambia el ranking territorial: además de los departamentos con alto volumen absoluto, emergen otros con alta carga relativa por habitante.
+
+*Nota: Este análisis es de carácter exploratorio y técnico; requiere interpretación por parte de especialistas en salud pública.*
