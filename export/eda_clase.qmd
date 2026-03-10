@@ -1,0 +1,131 @@
+---
+title: "Análisis Exploratorio de Datos: Suicidios en Colombia (2021)"
+author: "Samuel Gómez & Jacobo Petelli"
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-location: left
+    code-fold: true
+    code-tools: true
+  pdf:
+    toc: true
+    number-sections: true
+lang: es
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+# Cargar las librerías necesarias
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(knitr)
+library(kableExtra)
+```
+
+# Unir los tres datasets en una tabla grande
+
+Actualmente contamos con tres datasets: el de suicidios, el del PIB por departamento y el de población por departamento. Para realizar un análisis más completo, es necesario unir estos datasets en una sola tabla grande que contenga toda la información relevante.
+
+## Cargar los datasets
+Primero, cargamos los tres datasets en R utilizando la función `read.csv`. y podemos visualizar las primeras filas de cada uno para entender su estructura y asegurarnos de que los nombres de los departamentos estén estandarizados para facilitar la unión posterior.
+
+```{r}
+# Leer los datasets
+
+suicidios <- read.csv("../data/datos_suicidios_2021.csv") %>% janitor::clean_names()
+pib <- read.csv2("../data/PIB_departamental.csv") %>% janitor::clean_names()
+poblacion <- read.csv2("../data/poblacion_departamentos_2021.csv") %>% janitor::clean_names()
+
+# Mostrar las primeras filas de cada dataset con kable
+kable(head(suicidios, 3), caption = "Primeras filas del dataset de suicidios") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+kable(head(pib[,1:5], 3), caption = "Primeras filas del dataset de PIB") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+kable(head(poblacion, 3), caption = "Primeras filas del dataset de población") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+
+## Estandarización de nombres de departamentos
+
+Para asegurar que la unión se realice correctamente, es necesario estandarizar los nombres de los departamentos en los tres datasets. Creamos una función que convierte todos los nombres a mayúsculas, elimina acentos y maneja casos especiales:
+
+```{r}
+# Función para estandarizar nombres de departamentos
+estandarizar_nombre <- function(nombre) {
+  # Convertir a mayúsculas y quitar acentos
+  nombre_std <- toupper(nombre)
+  nombre_std <- chartr("ÁÉÍÓÚÑÜ", "AEIOUNÜ", nombre_std)
+  
+  # Casos especiales
+  nombre_std <- case_when(
+    grepl("BOGOTA", nombre_std) ~ "BOGOTA",
+    grepl("LA GUAJIRA", nombre_std) ~ "GUAJIRA",
+    grepl("NORTE.*SANTANDER", nombre_std) ~ "NORTE SANTANDER",
+    grepl("SAN ANDRES|ARCHIPIELAGO", nombre_std) ~ "SAN ANDRES",
+    grepl("VALLE.*CAUCA", nombre_std) ~ "VALLE",
+    TRUE ~ nombre_std
+  )
+  
+  # Limpiar espacios extras
+  nombre_std <- trimws(nombre_std)
+  nombre_std <- gsub("\\s+", " ", nombre_std)
+  
+  return(nombre_std)
+}
+
+# Aplicar estandarización a los tres datasets
+pib <- pib %>% 
+    mutate(dpto_std = estandarizar_nombre(departamentos))
+
+poblacion <- poblacion %>% 
+    mutate(dpto_std = estandarizar_nombre(dpnom))
+
+suicidios <- suicidios %>% 
+    mutate(dpto_std = estandarizar_nombre(departamento_ocurrencia))
+```
+
+## Unión de los datasets
+
+Una vez estandarizados los nombres, procedemos a unir los tres datasets. Primero unimos PIB y población usando el código de departamento (DIVIPOLA), y luego unimos este resultado con el dataset de suicidios usando el nombre estandarizado.
+
+La tabla de hechos es la que contiene para cada semana del año el número de suicidios por departamento (agrupamos los municipios), mientras que las tablas de dimensiones son las que contienen la información del PIB y la población por departamento. Al unir estas tablas, obtenemos un dataset completo que nos permitirá analizar la relación entre el número de suicidios, el PIB y la población en cada departamento.
+
+```{r}
+# Unir PIB y población
+datos_dpto <- pib %>% 
+  left_join(poblacion %>% select(dp, total, dpto_std), 
+            by = join_by(dpto_std)) %>%
+  rename(cod_dpto = dp, poblacion_2021 = total)
+
+# Unir con suicidios agrupando por departamento
+suicidios_agrupados <- suicidios %>%
+  group_by(dpto_std, semana) %>%
+  summarise(conteo = sum(conteo, na.rm = TRUE))
+
+datos_completos <- suicidios_agrupados %>%
+  left_join(datos_dpto %>% select(dpto_std, x2021, poblacion_2021),
+            by = join_by(dpto_std)) %>%
+  rename(pib_2021 = x2021)
+```
+
+Ahora tenemos un dataset completo con **`r nrow(datos_completos)`** observaciones que incluye toda la información de suicidios junto con el PIB y la población de cada departamento:
+
+```{r}
+# Mostrar estructura del dataset completo
+datos_completos %>% 
+  select(dpto_std, semana, conteo, pib_2021, poblacion_2021) %>% 
+  head(10) %>% 
+  kable(caption = "Primeras 10 filas del dataset unificado",
+        col.names = c("Departamento", "Semana", "Casos", "PIB 2021", "Población 2021")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+

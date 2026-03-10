@@ -20,6 +20,8 @@ execute:
 
 Este documento presenta un análisis exploratorio de datos (EDA) sobre los incidentes de intentos de suicidio y suicidios registrados en Colombia durante el año 2021. Los datos incluyen información por semana epidemiológica, municipio, departamento y conteo de casos.
 
+Adicionalmente, se cuenta con dos bases de datos departamentales: una con el PIB por departamento entre 2005 y 2024, y otra con la población de cada departamento de Colombia en 2020, separándola por rango de edad y sexo. Estas bases permiten contextualizar los incidentes en términos de carga relativa y posibles factores socioeconómicos.
+
 A continuación, exploraremos visualmente algunas tendencias y distribuciones en los datos para comprender mejor este fenómeno de salud pública.
 
 ```{r setup, include=FALSE}

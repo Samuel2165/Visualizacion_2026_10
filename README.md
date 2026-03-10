@@ -29,13 +29,23 @@ Los datos de intentos de suicidio provienen del portal de datos abiertos del gob
 
 [Datos.gov.co - Intento de Suicidio 2021](https://www.datos.gov.co/resource/fhc4-jjti.csv?$query=SELECT%0A%20%20%60cod_eve%60%2C%0A%20%20%60nombre_evento%60%2C%0A%20%20%60semana%60%2C%0A%20%20%60ano%60%2C%0A%20%20%60municipio_ocurrencia%60%2C%0A%20%20%60departamento_ocurrencia%60%2C%0A%20%20%60conteo%60%0AWHERE%20caseless_eq(%60nombre_evento%60%2C%20%22INTENTO%20DE%20SUICIDIO%22))
 
+### Datos de PIB Departamental
+Son presentados por el Departamento Administrativo Nacional de Estadística (DANE).
+
 **Variables incluidas:**
 - Semana epidemiológica
 - Departamento y municipio de ocurrencia
 - Conteo de casos
 
+[PIB Departamental](https://www.dane.gov.co/files/operaciones/PIB/anex-PIBDep-TotalDep-2024pr.xlsx)
+
+**Variables incluidas:**
+- Aporte al PIB nacional en miles de millones de pesos para diferentes años por cada departamento
+
 ### Datos Poblacionales
 Censo de población de Colombia por departamento, grupo etario y sexo (2020).
+
+[Proyecciones de Población Departamental 2018-2050](https://www.dane.gov.co/files/censo2018/proyecciones-de-poblacion/Departamental/PPED-AreaDep-2018-2050_VP.xlsx)
 
 ### Cartografía
 Shapefile departamental oficial de Colombia (MGN2024) utilizado para visualizaciones geoespaciales.
