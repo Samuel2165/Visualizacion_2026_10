@@ -1,5 +1,12 @@
 {
     "chat.tools.terminal.autoApprove": {
         "quarto": true
+    },
+    "r.rterm.windows": "C:\\Users\\sgome\\AppData\\Local\\Programs\\R\\R-4.5.3\\bin\\R.exe",
+    "r.rpath.windows": "C:\\Users\\sgome\\AppData\\Local\\Programs\\R\\R-4.5.3\\bin\\R.exe",
+    "r.sessionWatcher": true,
+    "r.alwaysUseActiveTerminal": true,
+    "terminal.integrated.env.windows": {
+        "PATH": "C:\\Users\\sgome\\AppData\\Local\\Programs\\R\\R-4.5.3\\bin;${env:PATH}"
     }
 }

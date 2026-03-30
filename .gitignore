@@ -1,0 +1,33 @@
+# Microsoft Office files
+*.docx
+*.pptx
+*.xlsx
+*.doc
+*.ppt
+*.xls
+
+# R files
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+*.Rproj
+
+# Quarto/RMarkdown
+.quarto/
+_freeze/
+_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor
+.vscode/settings.json
+.vscode/launch.json
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*~

@@ -16,7 +16,7 @@ Este proyecto presenta un análisis exploratorio de datos (EDA) sobre los incide
 ├── data/
 │   ├── datos_suicidios_2021.csv      # Datos de suicidios por semana, municipio y departamento
 │   ├── poblacion_colombia_2020.csv    # Datos poblacionales por departamento y grupo etario
-│   └── PIB_departamental.csv          # PIB por departamento (no utilizado en análisis actual)
+│   └── PIB_departamental.csv          # PIB por departamento
 ├── eda_suicidios.qmd                  # Documento Quarto con análisis completo
 ├── eda_suicidios.pdf                  # Reporte en formato IEEE Conference
 └── README.md                          # Este archivo
