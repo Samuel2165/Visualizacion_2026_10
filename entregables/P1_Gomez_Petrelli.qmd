@@ -135,11 +135,11 @@ El objetivo general del proyecto es:
 
 # Objetivos Específicos
 
-1.  **Caracterizar** la distribución espacial y temporal de la tasa de incidencia de intentos de suicidio (Evento 356) en Colombia, mediante medidas descriptivas, patrones de variación y comportamientos diferenciales por departamento.
-2.  **Comparar** las tendencias de la tasa de incidencia entre departamentos y periodos de análisis, con el fin de identificar territorios con comportamientos crecientes, decrecientes o estables.
-3.  **Analizar** la relación entre la tasa de incidencia de intentos de suicidio y variables sociodemográficas y determinantes socioeconómicos, para reconocer factores asociados al riesgo territorial.
-4.  **Identificar** y localizar clústeres territoriales y departamentos con mayores niveles de incidencia, priorizando aquellos con concentraciones persistentes o simultáneamente asociadas a condiciones de vulnerabilidad.
-5.  **Desarrollar** un tablero de control interactivo que integre indicadores, visualizaciones y herramientas de exploración geográfica para comunicar hallazgos y apoyar la toma de decisiones en salud pública territorial.
+1. **Describir** la distribución de las tasas de incidencia de intentos de suicidio (Evento 356) por departamento y municipio durante las 52 semanas epidemiológicas del 2021, mediante visualizaciones de series de tiempo y mapas coropléticos.
+2. **Comparar** la proporción de casos de intentos de suicidio entre los distintos departamentos de Colombia, utilizando métricas normalizadas por cada 100.000 habitantes para identificar disparidades regionales.
+3. **Correlacionar** el volumen de intentos de suicidio reportados con el PIB departamental per cápita, empleando gráficos de dispersión para explorar posibles asociaciones macroeconómicas.
+4. **Detectar** agrupamientos (clústeres) y valores atípicos (outliers) en los picos de incidencia semanal, facilitando la identificación visual de departamentos con alertas epidemiológicas inusuales a lo largo del año.
+5. **Clasificar** los departamentos del país según su nivel de riesgo epidemiológico (bajo, medio, alto) basándose en la concentración de casos y factores de vulnerabilidad, presentándolo a través de matrices de riesgo o *heatmaps*.
 
 # Plantilla Dashboard
 
