@@ -351,6 +351,10 @@
             height: 280px;
         }
 
+        .chart-body-tall {
+            height: 360px;
+        }
+
         .chart-desc {
             margin: 4px 0 10px;
             font-size: 12px;
@@ -866,7 +870,7 @@
                             leer cuadrantes.</p>
                         <div id="chartPib" class="chart-body"></div>
                     </div>
-                    <div class="chart-card chart-span-6">
+                    <div class="chart-card chart-span-8">
                         <div class="chart-header">
                             <div class="chart-title">Poblacion vs intentos (riesgo)</div>
                             <div class="chart-actions">
@@ -875,9 +879,9 @@
                         </div>
                         <p class="chart-desc">Cuadrantes de riesgo con eje de casos invertido para resaltar alta carga
                             en baja poblacion.</p>
-                        <div id="chartPop" class="chart-body"></div>
+                        <div id="chartPop" class="chart-body chart-body-tall"></div>
                     </div>
-                    <div class="chart-card chart-span-6">
+                    <div class="chart-card chart-span-4">
                         <div class="chart-header">
                             <div class="chart-title">Clasificacion de riesgo por departamento</div>
                         </div>
@@ -1580,7 +1584,7 @@
                 : `Semana pico: ${peakWeek} (${formatNumber(peakValue)} intentos)`;
             const peakEl = document.getElementById("trendPeak");
             if (peakEl) peakEl.textContent = peakText;
-            Plotly.react("chartTrend", [
+            const traces = [
                 {
                     x,
                     y,
@@ -1590,7 +1594,25 @@
                     line: { color: CONFIG.palette[0], width: 3 },
                     hovertemplate: "Semana %{x}<br>Intentos %{y}<extra></extra>"
                 }
-            ], baseLayout(""), { displayModeBar: false, responsive: true });
+            ];
+            if (peakWeek !== "-") {
+                traces.push({
+                    x: [peakWeek],
+                    y: [peakValue],
+                    type: "scatter",
+                    mode: "markers+text",
+                    marker: {
+                        size: 12,
+                        color: "#F59E0B",
+                        line: { color: "#0B1020", width: 1 }
+                    },
+                    text: ["Max"],
+                    textposition: "top center",
+                    hovertemplate: "Semana %{x}<br>Intentos %{y}<extra></extra>"
+                });
+            }
+            const trendLayout = { ...baseLayout(""), showlegend: false };
+            Plotly.react("chartTrend", traces, trendLayout, { displayModeBar: false, responsive: true });
         }
 
         function renderDeptRanking(agg) {
@@ -1761,6 +1783,7 @@
 
             Plotly.react("chartPib", traces, {
                 ...baseLayout(""),
+                showlegend: false,
                 xaxis: { title: "Casos", gridcolor: "rgba(148,163,184,0.15)" },
                 yaxis: { title: "PIB 2021", gridcolor: "rgba(148,163,184,0.15)" },
                 shapes: [
@@ -1918,7 +1941,7 @@
             ], {
                 ...baseLayout(""),
                 xaxis: { title: "Poblacion", gridcolor: "rgba(148,163,184,0.15)" },
-                yaxis: { title: "Casos (eje invertido)", gridcolor: "rgba(148,163,184,0.15)", autorange: "reversed" },
+                yaxis: { title: "Casos (eje invertido)", gridcolor: "rgba(148,163,184,0.15)", autorange: "reversed", automargin: true },
                 shapes,
                 annotations
             }, { displayModeBar: false, responsive: true });
