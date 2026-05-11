@@ -1,2071 +1,2128 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Colombia 2021 | Intentos de suicidio, PIB y poblacion</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.2/dist/css/tabulator.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <style>
-    :root {
-      --bg: #0B1020;
-      --surface: rgba(17, 24, 39, 0.72);
-      --surface-alt: rgba(30, 41, 59, 0.55);
-      --border: rgba(148, 163, 184, 0.18);
-      --text-primary: #E5E7EB;
-      --text-secondary: #94A3B8;
-      --primary: #14B8A6;
-      --secondary: #60A5FA;
-      --accent: #A78BFA;
-      --warning: #F59E0B;
-      --danger: #F472B6;
-      --success: #34D399;
-      --shadow: 0 18px 45px rgba(15, 23, 42, 0.45);
-      --radius-xl: 22px;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --radius-sm: 10px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: "Manrope", "Segoe UI", sans-serif;
-      color: var(--text-primary);
-      background: radial-gradient(circle at top, rgba(20, 184, 166, 0.18), transparent 45%),
-        radial-gradient(circle at 20% 30%, rgba(96, 165, 250, 0.18), transparent 50%),
-        linear-gradient(145deg, #0B1020, #111827 55%, #0B1020);
-      min-height: 100vh;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .app {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 32px 24px 64px;
-    }
-
-    .app-header {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-    }
-
-    .eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 0.3em;
-      color: var(--text-secondary);
-      font-size: 12px;
-      margin-bottom: 8px;
-    }
-
-    h1 {
-      font-size: clamp(28px, 3vw, 40px);
-      margin: 0 0 8px;
-    }
-
-    p {
-      color: var(--text-secondary);
-      margin: 0;
-      line-height: 1.6;
-    }
-
-    .status-bar {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: var(--surface);
-      padding: 16px 20px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(14px);
-      box-shadow: var(--shadow);
-      min-width: 260px;
-    }
-
-    .status-list {
-      display: grid;
-      gap: 6px;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .status-list span {
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-
-    .app-nav {
-      display: flex;
-      gap: 12px;
-      background: rgba(15, 23, 42, 0.85);
-      padding: 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      position: sticky;
-      top: 16px;
-      z-index: 10;
-      backdrop-filter: blur(16px);
-      box-shadow: var(--shadow);
-      overflow-x: auto;
-    }
-
-    .nav-btn {
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
-      padding: 10px 18px;
-      border-radius: 999px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .nav-btn.active,
-    .nav-btn:hover {
-      background: rgba(20, 184, 166, 0.2);
-      color: var(--text-primary);
-    }
-
-    .view {
-      display: none;
-      animation: fadeIn 0.35s ease;
-      margin-top: 28px;
-    }
-
-    .view.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .glass {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 20px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-    }
-
-    .filters {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      margin-bottom: 18px;
-    }
-
-    label {
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    select,
-    input[type="number"],
-    input[type="text"] {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid transparent;
-      color: var(--text-primary);
-      font-size: 14px;
-      outline: none;
-      transition: border 0.2s ease;
-    }
-
-    select:focus,
-    input:focus {
-      border-color: var(--primary);
-    }
-
-    .filter-actions {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-    }
-
-    .btn {
-      border: none;
-      padding: 10px 16px;
-      border-radius: 999px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      background: linear-gradient(120deg, rgba(20, 184, 166, 0.9), rgba(96, 165, 250, 0.9));
-      color: #0B1020;
-      box-shadow: var(--shadow);
-    }
-
-    .btn.secondary {
-      background: rgba(30, 41, 59, 0.9);
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-    }
-
-    .btn.form-cta {
-      background: linear-gradient(120deg, #F59E0B, #F472B6);
-      color: #0B1020;
-      border: none;
-      box-shadow: 0 16px 30px rgba(245, 158, 11, 0.35);
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .kpi-card {
-      background: var(--surface-alt);
-      border: 1px solid var(--border);
-      padding: 16px;
-      border-radius: var(--radius-lg);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-      min-height: 110px;
-    }
-
-    .kpi-label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-secondary);
-    }
-
-    .kpi-value {
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    .kpi-sub {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .dashboard-grid {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(12, 1fr);
-    }
-
-    .chart-span-4 {
-      grid-column: span 4;
-    }
-
-    .chart-span-6 {
-      grid-column: span 6;
-    }
-
-    .chart-span-8 {
-      grid-column: span 8;
-    }
-
-    .chart-span-12 {
-      grid-column: span 12;
-    }
-
-    .chart-card {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 14px 16px 6px;
-      min-height: 320px;
-      box-shadow: var(--shadow);
-    }
-
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-
-    .chart-title {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .chart-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .icon-btn {
-      border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.7);
-      color: var(--text-secondary);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .icon-btn:hover {
-      color: var(--text-primary);
-      border-color: var(--primary);
-    }
-
-    .chart-body {
-      height: 280px;
-    }
-
-    .chart-desc {
-      margin: 4px 0 10px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    .map-body {
-      height: 380px;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: rgba(11, 16, 32, 0.9);
-    }
-
-    .leaflet-container {
-      background: rgba(11, 16, 32, 0.9);
-      filter: saturate(0.85) brightness(0.9);
-    }
-
-    .map-legend {
-      background: rgba(11, 16, 32, 0.88);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      color: var(--text-primary);
-      font-size: 12px;
-      line-height: 1.4;
-      box-shadow: var(--shadow);
-    }
-
-    .map-legend .legend-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .map-legend .swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 4px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      display: inline-block;
-      margin-right: 6px;
-    }
-
-    .table-section {
-      margin-top: 24px;
-    }
-
-    .table-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .table-toolbar .left,
-    .table-toolbar .right {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .tabulator {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .tabulator .tabulator-header {
-      background: rgba(15, 23, 42, 0.85);
-      color: var(--text-primary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .tabulator .tabulator-row {
-      background: rgba(15, 23, 42, 0.65);
-      color: var(--text-primary);
-    }
-
-    .tabulator .tabulator-row.tabulator-row-even {
-      background: rgba(17, 24, 39, 0.8);
-    }
-
-    .tabulator .tabulator-row.tabulator-selected {
-      background: rgba(20, 184, 166, 0.3);
-    }
-
-    .analysis-grid {
-      display: grid;
-      gap: 18px;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    }
-
-    .analysis-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .analysis-card h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
-
-    .model-canvas {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 26px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .model-grid {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      position: relative;
-      z-index: 1;
-    }
-
-    .model-box {
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.8);
-    }
-
-    .model-box.fact {
-      border-color: rgba(20, 184, 166, 0.55);
-      box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.3);
-    }
-
-    .model-box.dim {
-      border-color: rgba(96, 165, 250, 0.45);
-      box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25);
-    }
-
-    .model-title {
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .model-fields {
-      margin: 0;
-      padding-left: 16px;
-      color: var(--text-secondary);
-      font-size: 13px;
-    }
-
-    .model-lines {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      opacity: 0.7;
-    }
-
-    .sources-grid {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      margin-bottom: 22px;
-    }
-
-    .source-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .meta-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .meta-table th,
-    .meta-table td {
-      border-bottom: 1px solid var(--border);
-      padding: 10px 8px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    .meta-table th {
-      color: var(--text-secondary);
-      font-weight: 600;
-    }
-
-    .notice {
-      border: 1px dashed rgba(148, 163, 184, 0.3);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      color: var(--text-secondary);
-      font-size: 13px;
-    }
-
-    .error-banner {
-      display: none;
-      padding: 12px 16px;
-      border-radius: var(--radius-md);
-      background: rgba(244, 114, 182, 0.16);
-      border: 1px solid rgba(244, 114, 182, 0.45);
-      color: #F9A8D4;
-      margin-bottom: 16px;
-    }
-
-    .error-banner.active {
-      display: block;
-    }
-
-    .loading .skeleton {
-      background: linear-gradient(90deg, rgba(30, 41, 59, 0.45), rgba(148, 163, 184, 0.15), rgba(30, 41, 59, 0.45));
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: var(--radius-sm);
-    }
-
-    .loading .kpi-value,
-    .loading .chart-body,
-    .loading #detailTable {
-      opacity: 0.25;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    .skeleton-line {
-      height: 12px;
-      margin-bottom: 8px;
-    }
-
-    .footer-note {
-      margin-top: 18px;
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(20, 184, 166, 0.12);
-      color: var(--text-primary);
-      border: 1px solid rgba(20, 184, 166, 0.4);
-    }
-
-    .helper-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    @media (max-width: 900px) {
-      .app {
-        padding: 24px 18px 50px;
-      }
-      .dashboard-grid {
-        grid-template-columns: repeat(6, 1fr);
-      }
-      .chart-span-4,
-      .chart-span-6,
-      .chart-span-8 {
-        grid-column: span 6;
-      }
-      .chart-body {
-        height: 240px;
-      }
-      .app-nav {
-        top: 8px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .status-bar {
-        width: 100%;
-      }
-      .dashboard-grid {
-        grid-template-columns: repeat(1, 1fr);
-      }
-      .chart-span-4,
-      .chart-span-6,
-      .chart-span-8,
-      .chart-span-12 {
-        grid-column: span 1;
-      }
-      .table-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .filter-actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <header class="app-header">
-      <div>
-        <div class="eyebrow">Colombia 2021</div>
-        <h1>Intentos de suicidio, PIB y poblacion</h1>
-        <p>Dashboard analitico con lectura integrada de intentos de suicidio, PIB departamental y poblacion en 2021.</p>
-        <p style="margin-top: 6px;">Autores: Samuel Gomez, Jacobo Petrelli.</p>
-        <div class="helper-row">
-          <span class="tag">Modo oscuro</span>
-          <span class="tag">Glassmorphism</span>
-          <span class="tag">Datos locales CSV</span>
-          <a class="btn form-cta" href="https://forms.cloud.microsoft/r/ecKsmZkgDC" target="_blank" rel="noopener">Responder formulario</a>
-        </div>
-      </div>
-      <div class="status-bar">
-        <div class="status-list" id="statusList">
-          <div>Estado: <span>Cargando...</span></div>
-          <div>Registros: <span>-</span></div>
-          <div>Ultima carga: <span>-</span></div>
-        </div>
-        <div class="notice" id="mappingInfo">Esperando archivos CSV...</div>
-      </div>
-    </header>
-
-    <nav class="app-nav" id="appNav">
-      <button class="nav-btn active" data-view="dashboard">Dashboard</button>
-      <button class="nav-btn" data-view="data_model">Modelo de datos</button>
-      <button class="nav-btn" data-view="sources">Fuentes</button>
-    </nav>
-
-    <main>
-      <section id="dashboard" class="view active">
-        <div id="errorBanner" class="error-banner"></div>
-
-        <div class="glass">
-          <div class="filters">
-            <div>
-              <label for="filterDept">Departamento</label>
-              <select id="filterDept"></select>
-            </div>
-            <div>
-              <label for="filterMun">Municipio</label>
-              <select id="filterMun"></select>
-            </div>
-            <div>
-              <label for="filterWeekMin">Semana desde</label>
-              <input type="number" id="filterWeekMin" min="1" max="53" />
-            </div>
-            <div>
-              <label for="filterWeekMax">Semana hasta</label>
-              <input type="number" id="filterWeekMax" min="1" max="53" />
-            </div>
-            <div>
-              <label for="filterMetric">Metrica</label>
-              <select id="filterMetric">
-                <option value="total">Total intentos</option>
-                <option value="rate">Tasa por 100k</option>
-              </select>
-            </div>
-            <div>
-              <label for="filterTopN">Top N</label>
-              <select id="filterTopN">
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-              </select>
-            </div>
-            <div>
-              <label for="orderAxisX">Orden eje X</label>
-              <select id="orderAxisX">
-                <option value="natural" selected>Natural</option>
-                <option value="asc">Ascendente</option>
-                <option value="desc">Descendente</option>
-              </select>
-            </div>
-            <div>
-              <label for="orderAxisY">Orden eje Y</label>
-              <select id="orderAxisY">
-                <option value="natural" selected>Natural</option>
-                <option value="asc">Ascendente</option>
-                <option value="desc">Descendente</option>
-              </select>
-            </div>
-            <div class="filter-actions">
-              <button class="btn" id="resetFilters">Reset filtros</button>
-              <button class="btn secondary" id="downloadTable">CSV tabla</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-label">Total intentos 2021</div>
-            <div class="kpi-value" id="kpiTotal">-</div>
-            <div class="kpi-sub" id="kpiTotalSub">Acumulado filtrado</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Promedio semanal</div>
-            <div class="kpi-value" id="kpiAvg">-</div>
-            <div class="kpi-sub">Media por semana</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Municipio top</div>
-            <div class="kpi-value" id="kpiMun">-</div>
-            <div class="kpi-sub" id="kpiMunSub">Mayor acumulado</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Departamento top</div>
-            <div class="kpi-value" id="kpiDept">-</div>
-            <div class="kpi-sub" id="kpiDeptSub">Mayor acumulado</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Tasa nacional 100k</div>
-            <div class="kpi-value" id="kpiRate">-</div>
-            <div class="kpi-sub">Con poblacion disponible</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Participacion top 5</div>
-            <div class="kpi-value" id="kpiTop5">-</div>
-            <div class="kpi-sub">Porcentaje del total</div>
-          </div>
-        </div>
-
-        <div class="dashboard-grid">
-          <div class="chart-card chart-span-8">
-            <div class="chart-header">
-              <div class="chart-title">Serie semanal nacional</div>
-              <div class="chart-actions">
-                <button class="icon-btn" data-download="chartTrend">PNG</button>
-              </div>
-            </div>
-            <p class="chart-desc">Evolucion semanal de intentos agregados a nivel nacional para identificar picos y tendencias.</p>
-            <div id="chartTrend" class="chart-body"></div>
-          </div>
-          <div class="chart-card chart-span-4">
-            <div class="chart-header">
-              <div class="chart-title">Ranking departamentos</div>
-              <div class="chart-actions">
-                <button class="icon-btn" data-download="chartDeptRank">PNG</button>
-              </div>
-            </div>
-            <p class="chart-desc">Top departamentos segun la metrica seleccionada. Clic en una barra para filtrar.</p>
-            <div id="chartDeptRank" class="chart-body"></div>
-          </div>
-          <div class="chart-card chart-span-4">
-            <div class="chart-header">
-              <div class="chart-title">Ranking municipios</div>
-              <div class="chart-actions">
-                <button class="icon-btn" data-download="chartMunRank">PNG</button>
-              </div>
-            </div>
-            <p class="chart-desc">Municipios con mayor acumulado de intentos dentro del filtro activo.</p>
-            <div id="chartMunRank" class="chart-body"></div>
-          </div>
-          <div class="chart-card chart-span-8">
-            <div class="chart-header">
-              <div class="chart-title">Heatmap semanal por departamento</div>
-              <div class="chart-actions">
-                <button class="icon-btn" data-download="chartHeatmap">PNG</button>
-              </div>
-            </div>
-            <p class="chart-desc">Intensidad semanal por departamento para detectar patrones temporales y concentraciones.</p>
-            <div id="chartHeatmap" class="chart-body"></div>
-          </div>
-          <div class="chart-card chart-span-6">
-            <div class="chart-header">
-              <div class="chart-title">PIB vs intentos (x = casos)</div>
-              <div class="chart-actions">
-                <button class="icon-btn" data-download="chartPib">PNG</button>
-              </div>
-            </div>
-            <p class="chart-desc">Relacion entre casos y PIB. Incluye linea de tendencia y medianas para leer cuadrantes.</p>
-            <div id="chartPib" class="chart-body"></div>
-          </div>
-          <div class="chart-card chart-span-6">
-            <div class="chart-header">
-              <div class="chart-title">Poblacion vs intentos (riesgo)</div>
-              <div class="chart-actions">
-                <button class="icon-btn" data-download="chartPop">PNG</button>
-              </div>
-            </div>
-            <p class="chart-desc">Cuadrantes de riesgo con eje de casos invertido para resaltar alta carga en baja poblacion.</p>
-            <div id="chartPop" class="chart-body"></div>
-          </div>
-          <div class="chart-card chart-span-6">
-            <div class="chart-header">
-              <div class="chart-title">Clasificacion de riesgo por departamento</div>
-            </div>
-            <p class="chart-desc">Se calcula con las medianas de poblacion y casos del filtro activo (alto, medio, bajo).</p>
-            <div id="riskTable"></div>
-          </div>
-          <div class="chart-card chart-span-12">
-            <div class="chart-header">
-              <div class="chart-title">Mapa departamental (tasa por 100k)</div>
-            </div>
-            <p class="chart-desc">Mapa oscuro con tasa por 100k. Bordes por region y saturacion segun intensidad.</p>
-            <div id="mapDept" class="map-body"></div>
-          </div>
-          <div class="chart-card chart-span-6">
-            <div class="chart-header">
-              <div class="chart-title">Tabla geografica resumida</div>
-            </div>
-            <p class="chart-desc">Ranking rapido para lectura territorial sin geometria.</p>
-            <div id="chartGeoTable" class="chart-body"></div>
-          </div>
-        </div>
-
-        <div class="table-section">
-          <div class="table-toolbar">
-            <div class="left">
-              <div>
-                <label for="tableDimension">Dimension tabla</label>
-                <select id="tableDimension">
-                  <option value="departamento">Departamento</option>
-                  <option value="municipio">Municipio</option>
-                </select>
-              </div>
-              <div>
-                <label for="tableSearch">Buscar</label>
-                <input type="text" id="tableSearch" placeholder="Buscar en tabla" />
-              </div>
-            </div>
-            <div class="right">
-              <button class="btn secondary" id="resetTableFilters">Limpiar busqueda</button>
-            </div>
-          </div>
-          <div id="detailTable"></div>
-        </div>
-      </section>
-
-      <section id="data_model" class="view">
-        <div class="model-canvas">
-          <svg class="model-lines" viewBox="0 0 1000 520" preserveAspectRatio="none">
-            <line x1="470" y1="150" x2="300" y2="40" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
-            <line x1="530" y1="150" x2="700" y2="40" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
-            <line x1="500" y1="210" x2="500" y2="360" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
-          </svg>
-          <div class="model-grid">
-            <div class="model-box dim">
-              <div class="model-title">DimFechaSemana</div>
-              <ul class="model-fields">
-                <li>id_fecha_semana</li>
-                <li>anio</li>
-                <li>semana</li>
-                <li>periodo_derivado</li>
-              </ul>
-            </div>
-            <div class="model-box fact">
-              <div class="model-title">FactIntentosSuicidio</div>
-              <ul class="model-fields">
-                <li>id_fecha_semana</li>
-                <li>id_municipio</li>
-                <li>id_departamento</li>
-                <li>numero_intentos</li>
-              </ul>
-            </div>
-            <div class="model-box dim">
-              <div class="model-title">DimMunicipio</div>
-              <ul class="model-fields">
-                <li>id_municipio</li>
-                <li>codigo_municipio</li>
-                <li>municipio</li>
-                <li>id_departamento</li>
-              </ul>
-            </div>
-            <div class="model-box dim">
-              <div class="model-title">DimDepartamento</div>
-              <ul class="model-fields">
-                <li>id_departamento</li>
-                <li>codigo_departamento</li>
-                <li>departamento</li>
-                <li>region</li>
-              </ul>
-            </div>
-            <div class="model-box fact">
-              <div class="model-title">FactPIBDepartamental</div>
-              <ul class="model-fields">
-                <li>id_departamento</li>
-                <li>pib_2021</li>
-              </ul>
-            </div>
-            <div class="model-box fact">
-              <div class="model-title">FactPoblacionDepartamental</div>
-              <ul class="model-fields">
-                <li>id_departamento</li>
-                <li>poblacion_2021</li>
-              </ul>
-            </div>
-          </div>
-          <div class="footer-note">Modelo estrella inspirado en la vista de modelo de Power BI.</div>
-        </div>
-      </section>
-
-      <section id="sources" class="view">
-        <div class="sources-grid" id="sourcesCards"></div>
-        <div class="glass">
-          <h3>Metadatos consolidados</h3>
-          <table class="meta-table" id="sourcesTable"></table>
-        </div>
-        <div class="analysis-card" style="margin-top: 18px;">
-          <h3>Metodologia y limitaciones</h3>
-          <p id="methodologyNotes"></p>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.2/dist/js/tabulator.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script>
-    const CONFIG = {
-      files: {
-        suicidios: "data/datos_suicidios_2021.csv",
-        pib: "data/PIB_departamental.csv",
-        poblacion: "data/poblacion_departamentos_2021.csv",
-        geojson: "mapas/ADMINISTRATIVO/MGN_ADM_DPTO_POLITICO.geojson"
-      },
-      palette: ["#14B8A6", "#60A5FA", "#A78BFA", "#F59E0B", "#F472B6", "#34D399"],
-      maxTableRows: 500
-    };
-
-    const state = {
-      department: "ALL",
-      municipio: "ALL",
-      weekMin: 1,
-      weekMax: 53,
-      metric: "total",
-      topN: 10,
-      orderX: "natural",
-      orderY: "natural",
-      tableDimension: "departamento"
-    };
-
-    const els = {
-      statusList: document.getElementById("statusList"),
-      mappingInfo: document.getElementById("mappingInfo"),
-      errorBanner: document.getElementById("errorBanner"),
-      filterDept: document.getElementById("filterDept"),
-      filterMun: document.getElementById("filterMun"),
-      filterWeekMin: document.getElementById("filterWeekMin"),
-      filterWeekMax: document.getElementById("filterWeekMax"),
-      filterMetric: document.getElementById("filterMetric"),
-      filterTopN: document.getElementById("filterTopN"),
-      orderAxisX: document.getElementById("orderAxisX"),
-      orderAxisY: document.getElementById("orderAxisY"),
-      resetFilters: document.getElementById("resetFilters"),
-      kpiTotal: document.getElementById("kpiTotal"),
-      kpiAvg: document.getElementById("kpiAvg"),
-      kpiMun: document.getElementById("kpiMun"),
-      kpiMunSub: document.getElementById("kpiMunSub"),
-      kpiDept: document.getElementById("kpiDept"),
-      kpiDeptSub: document.getElementById("kpiDeptSub"),
-      kpiRate: document.getElementById("kpiRate"),
-      kpiTop5: document.getElementById("kpiTop5"),
-      riskTable: document.getElementById("riskTable"),
-      tableDimension: document.getElementById("tableDimension"),
-      tableSearch: document.getElementById("tableSearch"),
-      resetTableFilters: document.getElementById("resetTableFilters"),
-      downloadTable: document.getElementById("downloadTable"),
-      sourcesCards: document.getElementById("sourcesCards"),
-      sourcesTable: document.getElementById("sourcesTable"),
-      methodologyNotes: document.getElementById("methodologyNotes"),
-      analysisSummary: document.getElementById("analysisSummary"),
-      analysisTemporal: document.getElementById("analysisTemporal"),
-      analysisTerritorial: document.getElementById("analysisTerritorial"),
-      analysisPopulation: document.getElementById("analysisPopulation"),
-      analysisPib: document.getElementById("analysisPib"),
-      analysisLimits: document.getElementById("analysisLimits")
-    };
-
-    let rawSuicidios = [];
-    let deptLookup = { byCode: new Map(), byName: new Map() };
-    let table = null;
-    let minWeek = 1;
-    let maxWeek = 53;
-    let mapInstance = null;
-    let mapLayer = null;
-    let geojsonData = null;
-
-    const numberFmt = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 });
-    const numberFmt2 = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 });
-
-    document.querySelectorAll(".nav-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        const viewId = btn.getAttribute("data-view");
-        document.querySelectorAll(".view").forEach((view) => {
-          view.classList.toggle("active", view.id === viewId);
-        });
-      });
-    });
-
-    document.querySelectorAll("[data-download]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const chartId = btn.getAttribute("data-download");
-        const node = document.getElementById(chartId);
-        if (node) {
-          Plotly.downloadImage(node, { format: "png", filename: chartId });
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colombia 2021 | Intentos de suicidio, PIB y poblacion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.2/dist/css/tabulator.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+        :root {
+            --bg: #0B1020;
+            --surface: rgba(17, 24, 39, 0.72);
+            --surface-alt: rgba(30, 41, 59, 0.55);
+            --border: rgba(148, 163, 184, 0.18);
+            --text-primary: #E5E7EB;
+            --text-secondary: #94A3B8;
+            --primary: #14B8A6;
+            --secondary: #60A5FA;
+            --accent: #A78BFA;
+            --warning: #F59E0B;
+            --danger: #F472B6;
+            --success: #34D399;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.45);
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 10px;
         }
-      });
-    });
 
-    els.filterDept.addEventListener("change", () => {
-      state.department = els.filterDept.value;
-      state.municipio = "ALL";
-      updateMunicipioOptions();
-      renderAll();
-    });
-    els.filterMun.addEventListener("change", () => {
-      state.municipio = els.filterMun.value;
-      renderAll();
-    });
-    els.filterWeekMin.addEventListener("change", () => {
-      state.weekMin = clampWeek(parseInt(els.filterWeekMin.value, 10));
-      renderAll();
-    });
-    els.filterWeekMax.addEventListener("change", () => {
-      state.weekMax = clampWeek(parseInt(els.filterWeekMax.value, 10));
-      renderAll();
-    });
-    els.filterMetric.addEventListener("change", () => {
-      state.metric = els.filterMetric.value;
-      renderAll();
-    });
-    els.filterTopN.addEventListener("change", () => {
-      state.topN = parseInt(els.filterTopN.value, 10);
-      renderAll();
-    });
-    els.orderAxisX.addEventListener("change", () => {
-      state.orderX = els.orderAxisX.value;
-      renderAll();
-    });
-    els.orderAxisY.addEventListener("change", () => {
-      state.orderY = els.orderAxisY.value;
-      renderAll();
-    });
-    els.resetFilters.addEventListener("click", () => {
-      state.department = "ALL";
-      state.municipio = "ALL";
-      state.weekMin = minWeek;
-      state.weekMax = maxWeek;
-      state.metric = "total";
-      state.topN = 10;
-      state.orderX = "natural";
-      state.orderY = "natural";
-      syncFilterInputs();
-      renderAll();
-    });
-    els.tableDimension.addEventListener("change", () => {
-      state.tableDimension = els.tableDimension.value;
-      renderAll();
-    });
-    els.tableSearch.addEventListener("input", (event) => {
-      const value = event.target.value.trim();
-      if (!table) return;
-      if (!value) {
-        table.clearFilter();
-        return;
-      }
-      table.setFilter([
-        [{ field: "departamento", type: "like", value }],
-        [{ field: "municipio", type: "like", value }]
-      ]);
-    });
-    els.resetTableFilters.addEventListener("click", () => {
-      els.tableSearch.value = "";
-      if (table) table.clearFilter();
-    });
-    els.downloadTable.addEventListener("click", () => {
-      if (table) table.download("csv", "tabla_filtrada.csv");
-    });
+        * {
+            box-sizing: border-box;
+        }
 
-    function setLoading(isLoading) {
-      document.body.classList.toggle("loading", isLoading);
-    }
+        body {
+            margin: 0;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            color: var(--text-primary);
+            background: radial-gradient(circle at top, rgba(20, 184, 166, 0.18), transparent 45%),
+                radial-gradient(circle at 20% 30%, rgba(96, 165, 250, 0.18), transparent 50%),
+                linear-gradient(145deg, #0B1020, #111827 55%, #0B1020);
+            min-height: 100vh;
+        }
 
-    function showError(message) {
-      els.errorBanner.textContent = message;
-      els.errorBanner.classList.add("active");
-    }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
 
-    function clearError() {
-      els.errorBanner.classList.remove("active");
-      els.errorBanner.textContent = "";
-    }
+        .app {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
 
-    function clampWeek(value) {
-      if (!Number.isFinite(value)) return minWeek;
-      return Math.max(minWeek, Math.min(maxWeek, value));
-    }
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
 
-    function normalizeKey(value) {
-      return String(value || "")
-        .toUpperCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^A-Z0-9]+/g, " ")
-        .trim();
-    }
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
 
-    function formatDeptCode(value) {
-      if (value === null || value === undefined) return null;
-      const num = String(parseNumber(value)).padStart(2, "0");
-      return num;
-    }
+        h1 {
+            font-size: clamp(28px, 3vw, 40px);
+            margin: 0 0 8px;
+        }
 
-    function parseNumber(value) {
-      if (value === null || value === undefined) return null;
-      let raw = String(value).replace(/\s+/g, "").replace(/"/g, "");
-      if (!raw) return null;
-      if (/^\d{1,3},\d{3}$/.test(raw)) {
-        return Number(raw.replace(/,/g, ""));
-      }
-      if (raw.includes(",") && !raw.includes(".")) {
-        raw = raw.replace(/,/g, ".");
-      }
-      const num = Number(raw);
-      return Number.isFinite(num) ? num : null;
-    }
+        p {
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.6;
+        }
 
-    function formatNumber(value) {
-      return value === null || value === undefined ? "-" : numberFmt.format(value);
-    }
+        .status-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: var(--surface);
+            padding: 16px 20px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(14px);
+            box-shadow: var(--shadow);
+            min-width: 260px;
+        }
 
-    function formatRate(value) {
-      return value === null || value === undefined ? "-" : numberFmt2.format(value);
-    }
+        .status-list {
+            display: grid;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
 
-    function median(values) {
-      if (!values.length) return null;
-      const sorted = values.slice().sort((a, b) => a - b);
-      const mid = Math.floor(sorted.length / 2);
-      if (sorted.length % 2 === 0) {
-        return (sorted[mid - 1] + sorted[mid]) / 2;
-      }
-      return sorted[mid];
-    }
+        .status-list span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
 
-    function linearRegression(points) {
-      if (points.length < 2) return null;
-      const n = points.length;
-      const sumX = points.reduce((sum, p) => sum + p.x, 0);
-      const sumY = points.reduce((sum, p) => sum + p.y, 0);
-      const sumXY = points.reduce((sum, p) => sum + p.x * p.y, 0);
-      const sumXX = points.reduce((sum, p) => sum + p.x * p.x, 0);
-      const denom = n * sumXX - sumX * sumX;
-      if (denom === 0) return null;
-      const slope = (n * sumXY - sumX * sumY) / denom;
-      const intercept = (sumY - slope * sumX) / n;
-      return { slope, intercept };
-    }
+        .app-nav {
+            display: flex;
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 16px;
+            z-index: 10;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
 
-    function pickColumn(headers, candidates) {
-      const normalized = headers.map((h) => normalizeKey(h));
-      for (const candidate of candidates) {
-        const idx = normalized.indexOf(normalizeKey(candidate));
-        if (idx >= 0) return headers[idx];
-      }
-      return null;
-    }
+        .nav-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
 
-    function findYearColumn(headers, year) {
-      const regex = new RegExp(String(year));
-      const match = headers.find((h) => regex.test(h));
-      return match || null;
-    }
+        .nav-btn.active,
+        .nav-btn:hover {
+            background: rgba(20, 184, 166, 0.2);
+            color: var(--text-primary);
+        }
 
-    function loadCsv(path) {
-      return new Promise((resolve, reject) => {
-        Papa.parse(path, {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            if (results.errors && results.errors.length) {
-              reject(new Error(results.errors[0].message));
-              return;
+        .view {
+            display: none;
+            animation: fadeIn 0.35s ease;
+            margin-top: 28px;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
             }
-            resolve(results);
-          },
-          error: (err) => reject(err)
-        });
-      });
-    }
 
-    function getOrCreateDept(code, name) {
-      let record = null;
-      if (code !== null && code !== undefined && deptLookup.byCode.has(code)) {
-        record = deptLookup.byCode.get(code);
-      }
-      if (!record && name) {
-        const key = normalizeKey(name);
-        record = deptLookup.byName.get(key);
-      }
-      if (!record) {
-        record = { code: code ?? null, name: name || "", pib: null, pop: null, region: null, key: null };
-      }
-      if (code !== null && code !== undefined) {
-        deptLookup.byCode.set(code, record);
-      }
-      if (name) {
-        deptLookup.byName.set(normalizeKey(name), record);
-      }
-      if (!record.key) {
-        record.key = code !== null && code !== undefined ? `COD_${code}` : `NAME_${normalizeKey(name)}`;
-      }
-      if (!record.name && name) record.name = name;
-      return record;
-    }
-
-    function buildMappings(suicidiosResult, pibResult, popResult) {
-      const suicHeaders = suicidiosResult.meta.fields || [];
-      const pibHeaders = pibResult.meta.fields || [];
-      const popHeaders = popResult.meta.fields || [];
-
-      const mapping = {
-        suicidios: {
-          municipio: pickColumn(suicHeaders, ["municipio_ocurrencia", "municipio", "mun", "mpio"]),
-          departamento: pickColumn(suicHeaders, ["departamento_ocurrencia", "departamento", "depto", "departamentos"]),
-          semana: pickColumn(suicHeaders, ["semana", "week"]),
-          anio: pickColumn(suicHeaders, ["anio", "ano", "year"]),
-          conteo: pickColumn(suicHeaders, ["conteo", "numero_intentos", "intentos", "total", "casos"]),
-          codigo_departamento: pickColumn(suicHeaders, ["codigo_departamento", "codigo_departamento_divipola", "cod_depto", "dp"])
-        },
-        pib: {
-          departamento: pickColumn(pibHeaders, ["departamentos", "departamento", "dpnom"]),
-          codigo: pickColumn(pibHeaders, ["codigo_departamento_divipola", "codigo_departamento", "dp"]),
-          pib: findYearColumn(pibHeaders, 2021)
-        },
-        poblacion: {
-          departamento: pickColumn(popHeaders, ["dpnom", "departamentos", "departamento"]),
-          codigo: pickColumn(popHeaders, ["dp", "codigo_departamento", "codigo_departamento_divipola"]),
-          region: pickColumn(popHeaders, ["region", "region_geo"]),
-          anio: pickColumn(popHeaders, ["ano", "anio", "year"]),
-          total: pickColumn(popHeaders, ["total", "poblacion", "poblacion_2021"]),
-          area: pickColumn(popHeaders, ["area_geografica", "area"])
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-      };
 
-      const missing = [];
-      if (!mapping.suicidios.municipio) missing.push("suicidios: municipio");
-      if (!mapping.suicidios.departamento) missing.push("suicidios: departamento");
-      if (!mapping.suicidios.semana) missing.push("suicidios: semana");
-      if (!mapping.suicidios.anio) missing.push("suicidios: anio");
-      if (!mapping.suicidios.conteo) missing.push("suicidios: conteo");
-      if (!mapping.pib.departamento) missing.push("pib: departamento");
-      if (!mapping.pib.pib) missing.push("pib: columna 2021");
-      if (!mapping.poblacion.departamento) missing.push("poblacion: departamento");
-      if (!mapping.poblacion.total) missing.push("poblacion: total");
+        .glass {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
 
-      if (missing.length) {
-        throw new Error(`Faltan columnas criticas: ${missing.join(", ")}`);
-      }
+        .filters {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            margin-bottom: 18px;
+        }
 
-      return mapping;
-    }
+        label {
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 8px;
+        }
 
-    function normalizeData(suicidiosResult, pibResult, popResult, mapping) {
-      deptLookup = { byCode: new Map(), byName: new Map() };
+        select,
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s ease;
+        }
 
-      const pibRows = pibResult.data
-        .map((row) => ({
-          code: parseNumber(row[mapping.pib.codigo]),
-          name: String(row[mapping.pib.departamento] || "").trim(),
-          pib: parseNumber(row[mapping.pib.pib])
-        }))
-        .filter((row) => row.name && row.pib !== null);
+        select:focus,
+        input:focus {
+            border-color: var(--primary);
+        }
 
-      pibRows.forEach((row) => {
-        if (normalizeKey(row.name) === "COLOMBIA") return;
-        const record = getOrCreateDept(row.code, row.name);
-        record.pib = row.pib;
-      });
+        .filter-actions {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+        }
 
-      const popRows = popResult.data
-        .map((row) => ({
-          code: parseNumber(row[mapping.poblacion.codigo]),
-          name: String(row[mapping.poblacion.departamento] || "").trim(),
-          region: String(row[mapping.poblacion.region] || "").trim(),
-          year: parseNumber(row[mapping.poblacion.anio]),
-          total: parseNumber(row[mapping.poblacion.total]),
-          area: String(row[mapping.poblacion.area] || "").trim()
-        }))
-        .filter((row) => row.name && row.total !== null)
-        .filter((row) => !row.year || row.year === 2021)
-        .filter((row) => !row.area || normalizeKey(row.area) === "TOTAL");
+        .btn {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: linear-gradient(120deg, rgba(20, 184, 166, 0.9), rgba(96, 165, 250, 0.9));
+            color: #0B1020;
+            box-shadow: var(--shadow);
+        }
 
-      popRows.forEach((row) => {
-        const record = getOrCreateDept(row.code, row.name);
-        record.pop = row.total;
-        if (row.region) record.region = row.region;
-      });
+        .btn.secondary {
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
 
-      rawSuicidios = suicidiosResult.data
-        .map((row) => {
-          const departamento = String(row[mapping.suicidios.departamento] || "").trim();
-          const municipio = String(row[mapping.suicidios.municipio] || "").trim();
-          const week = parseNumber(row[mapping.suicidios.semana]);
-          const anio = parseNumber(row[mapping.suicidios.anio]);
-          const conteo = parseNumber(row[mapping.suicidios.conteo]) || 0;
-          const code = parseNumber(row[mapping.suicidios.codigo_departamento]);
-          const deptRecord = getOrCreateDept(code, departamento);
-          return {
-            municipio,
-            departamento,
-            semana: week,
-            anio,
-            conteo,
-            deptRecord
-          };
-        })
-        .filter((row) => row.municipio && row.departamento && row.semana && row.anio);
+        .btn.form-cta {
+            background: linear-gradient(120deg, #F59E0B, #F472B6);
+            color: #0B1020;
+            border: none;
+            box-shadow: 0 16px 30px rgba(245, 158, 11, 0.35);
+        }
 
-      minWeek = Math.min(...rawSuicidios.map((row) => row.semana));
-      maxWeek = Math.max(...rawSuicidios.map((row) => row.semana));
-      state.weekMin = minWeek;
-      state.weekMax = maxWeek;
+        .btn:hover {
+            transform: translateY(-1px);
+        }
 
-      const mappingText = [
-        `Suicidios: ${mapping.suicidios.municipio}, ${mapping.suicidios.departamento}, ${mapping.suicidios.semana}, ${mapping.suicidios.conteo}`,
-        `PIB: ${mapping.pib.departamento}, ${mapping.pib.pib}`,
-        `Poblacion: ${mapping.poblacion.departamento}, ${mapping.poblacion.total}`
-      ];
-      els.mappingInfo.textContent = `Columnas detectadas: ${mappingText.join(" | ")}`;
-    }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
 
-    function updateStatus(totalRows) {
-      const now = new Date();
-      els.statusList.innerHTML = `
+        .kpi-card {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            min-height: 110px;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+        }
+
+        .kpi-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .kpi-sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(12, 1fr);
+        }
+
+        .chart-span-4 {
+            grid-column: span 4;
+        }
+
+        .chart-span-6 {
+            grid-column: span 6;
+        }
+
+        .chart-span-8 {
+            grid-column: span 8;
+        }
+
+        .chart-span-12 {
+            grid-column: span 12;
+        }
+
+        .chart-card {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px 6px;
+            min-height: 320px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.7);
+            color: var(--text-secondary);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--primary);
+        }
+
+        .chart-body {
+            height: 280px;
+        }
+
+        .chart-desc {
+            margin: 4px 0 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .map-body {
+            height: 380px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(11, 16, 32, 0.9);
+        }
+
+        .leaflet-container {
+            background: rgba(11, 16, 32, 0.9);
+            filter: saturate(0.85) brightness(0.9);
+        }
+
+        .map-legend {
+            background: rgba(11, 16, 32, 0.88);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: var(--shadow);
+        }
+
+        .map-legend .legend-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .map-legend .swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .table-section {
+            margin-top: 24px;
+        }
+
+        .table-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .table-toolbar .left,
+        .table-toolbar .right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .tabulator {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .tabulator .tabulator-header {
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tabulator .tabulator-row {
+            background: rgba(15, 23, 42, 0.65);
+            color: var(--text-primary);
+        }
+
+        .tabulator .tabulator-row.tabulator-row-even {
+            background: rgba(17, 24, 39, 0.8);
+        }
+
+        .tabulator .tabulator-row.tabulator-selected {
+            background: rgba(20, 184, 166, 0.3);
+        }
+
+        .analysis-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        .analysis-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .analysis-card h3 {
+            margin: 0 0 8px;
+            font-size: 16px;
+        }
+
+        .model-canvas {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 26px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .model-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            position: relative;
+            z-index: 1;
+        }
+
+        .model-box {
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .model-box.fact {
+            border-color: rgba(20, 184, 166, 0.55);
+            box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.3);
+        }
+
+        .model-box.dim {
+            border-color: rgba(96, 165, 250, 0.45);
+            box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25);
+        }
+
+        .model-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .model-fields {
+            margin: 0;
+            padding-left: 16px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .model-lines {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .sources-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            margin-bottom: 22px;
+        }
+
+        .source-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .meta-table th,
+        .meta-table td {
+            border-bottom: 1px solid var(--border);
+            padding: 10px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .meta-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .notice {
+            border: 1px dashed rgba(148, 163, 184, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .error-banner {
+            display: none;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(244, 114, 182, 0.16);
+            border: 1px solid rgba(244, 114, 182, 0.45);
+            color: #F9A8D4;
+            margin-bottom: 16px;
+        }
+
+        .error-banner.active {
+            display: block;
+        }
+
+        .loading .skeleton {
+            background: linear-gradient(90deg, rgba(30, 41, 59, 0.45), rgba(148, 163, 184, 0.15), rgba(30, 41, 59, 0.45));
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--radius-sm);
+        }
+
+        .loading .kpi-value,
+        .loading .chart-body,
+        .loading #detailTable {
+            opacity: 0.25;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-line {
+            height: 12px;
+            margin-bottom: 8px;
+        }
+
+        .footer-note {
+            margin-top: 18px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(20, 184, 166, 0.12);
+            color: var(--text-primary);
+            border: 1px solid rgba(20, 184, 166, 0.4);
+        }
+
+        .helper-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 900px) {
+            .app {
+                padding: 24px 18px 50px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .chart-span-4,
+            .chart-span-6,
+            .chart-span-8 {
+                grid-column: span 6;
+            }
+
+            .chart-body {
+                height: 240px;
+            }
+
+            .app-nav {
+                top: 8px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .status-bar {
+                width: 100%;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(1, 1fr);
+            }
+
+            .chart-span-4,
+            .chart-span-6,
+            .chart-span-8,
+            .chart-span-12 {
+                grid-column: span 1;
+            }
+
+            .table-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div>
+                <div class="eyebrow">Colombia 2021</div>
+                <h1>Intentos de suicidio, PIB y poblacion</h1>
+                <p>Dashboard analitico con lectura integrada de intentos de suicidio, PIB departamental y poblacion en
+                    2021.</p>
+                <p style="margin-top: 6px;">Autores: Samuel Gomez, Jacobo Petrelli.</p>
+                <div class="helper-row">
+                    <span class="tag">Modo oscuro</span>
+                    <span class="tag">Glassmorphism</span>
+                    <span class="tag">Datos locales CSV</span>
+                    <a class="btn form-cta" href="https://forms.cloud.microsoft/r/ecKsmZkgDC" target="_blank"
+                        rel="noopener">Responder formulario</a>
+                </div>
+            </div>
+            <div class="status-bar">
+                <div class="status-list" id="statusList">
+                    <div>Estado: <span>Cargando...</span></div>
+                    <div>Registros: <span>-</span></div>
+                    <div>Ultima carga: <span>-</span></div>
+                </div>
+                <div class="notice" id="mappingInfo">Esperando archivos CSV...</div>
+            </div>
+        </header>
+
+        <nav class="app-nav" id="appNav">
+            <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+            <button class="nav-btn" data-view="data_model">Modelo de datos</button>
+            <button class="nav-btn" data-view="sources">Fuentes</button>
+        </nav>
+
+        <main>
+            <section id="dashboard" class="view active">
+                <div id="errorBanner" class="error-banner"></div>
+
+                <div class="glass">
+                    <div class="filters">
+                        <div>
+                            <label for="filterDept">Departamento</label>
+                            <select id="filterDept"></select>
+                        </div>
+                        <div>
+                            <label for="filterMun">Municipio</label>
+                            <select id="filterMun"></select>
+                        </div>
+                        <div>
+                            <label for="filterWeekMin">Semana desde</label>
+                            <input type="number" id="filterWeekMin" min="1" max="53" />
+                        </div>
+                        <div>
+                            <label for="filterWeekMax">Semana hasta</label>
+                            <input type="number" id="filterWeekMax" min="1" max="53" />
+                        </div>
+                        <div>
+                            <label for="filterMetric">Metrica</label>
+                            <select id="filterMetric">
+                                <option value="total">Total intentos</option>
+                                <option value="rate">Tasa por 100k</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterTopN">Top N</label>
+                            <select id="filterTopN">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="orderAxisX">Orden eje X</label>
+                            <select id="orderAxisX">
+                                <option value="natural" selected>Natural</option>
+                                <option value="asc">Ascendente</option>
+                                <option value="desc">Descendente</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="orderAxisY">Orden eje Y</label>
+                            <select id="orderAxisY">
+                                <option value="natural" selected>Natural</option>
+                                <option value="asc">Ascendente</option>
+                                <option value="desc">Descendente</option>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn" id="resetFilters">Reset filtros</button>
+                            <button class="btn secondary" id="downloadTable">CSV tabla</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total intentos 2021</div>
+                        <div class="kpi-value" id="kpiTotal">-</div>
+                        <div class="kpi-sub" id="kpiTotalSub">Acumulado filtrado</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Promedio semanal</div>
+                        <div class="kpi-value" id="kpiAvg">-</div>
+                        <div class="kpi-sub">Media por semana</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Municipio top</div>
+                        <div class="kpi-value" id="kpiMun">-</div>
+                        <div class="kpi-sub" id="kpiMunSub">Mayor acumulado</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Departamento top</div>
+                        <div class="kpi-value" id="kpiDept">-</div>
+                        <div class="kpi-sub" id="kpiDeptSub">Mayor acumulado</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Tasa nacional 100k</div>
+                        <div class="kpi-value" id="kpiRate">-</div>
+                        <div class="kpi-sub">Con poblacion disponible</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Participacion top 5</div>
+                        <div class="kpi-value" id="kpiTop5">-</div>
+                        <div class="kpi-sub">Porcentaje del total</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="chart-card chart-span-8">
+                        <div class="chart-header">
+                            <div class="chart-title">Serie semanal nacional</div>
+                            <div class="chart-actions">
+                                <button class="icon-btn" data-download="chartTrend">PNG</button>
+                            </div>
+                        </div>
+                        <p class="chart-desc" id="trendPeak">Semana pico: -</p>
+                        <p class="chart-desc">Evolucion semanal de intentos agregados a nivel nacional para identificar
+                            picos y tendencias.</p>
+                        <div id="chartTrend" class="chart-body"></div>
+                    </div>
+                    <div class="chart-card chart-span-4">
+                        <div class="chart-header">
+                            <div class="chart-title">Ranking departamentos</div>
+                            <div class="chart-actions">
+                                <button class="icon-btn" data-download="chartDeptRank">PNG</button>
+                            </div>
+                        </div>
+                        <p class="chart-desc">Top departamentos segun la metrica seleccionada. Clic en una barra para
+                            filtrar.</p>
+                        <div id="chartDeptRank" class="chart-body"></div>
+                    </div>
+                    <div class="chart-card chart-span-4">
+                        <div class="chart-header">
+                            <div class="chart-title">Ranking municipios</div>
+                            <div class="chart-actions">
+                                <button class="icon-btn" data-download="chartMunRank">PNG</button>
+                            </div>
+                        </div>
+                        <p class="chart-desc">Municipios con mayor acumulado de intentos dentro del filtro activo.</p>
+                        <div id="chartMunRank" class="chart-body"></div>
+                    </div>
+                    <div class="chart-card chart-span-8">
+                        <div class="chart-header">
+                            <div class="chart-title">Heatmap semanal por departamento</div>
+                            <div class="chart-actions">
+                                <button class="icon-btn" data-download="chartHeatmap">PNG</button>
+                            </div>
+                        </div>
+                        <p class="chart-desc">Intensidad semanal por departamento para detectar patrones temporales y
+                            concentraciones.</p>
+                        <div id="chartHeatmap" class="chart-body"></div>
+                    </div>
+                    <div class="chart-card chart-span-6">
+                        <div class="chart-header">
+                            <div class="chart-title">PIB vs intentos (x = casos)</div>
+                            <div class="chart-actions">
+                                <button class="icon-btn" data-download="chartPib">PNG</button>
+                            </div>
+                        </div>
+                        <p class="chart-desc">Relacion entre casos y PIB. Incluye linea de tendencia y medianas para
+                            leer cuadrantes.</p>
+                        <div id="chartPib" class="chart-body"></div>
+                    </div>
+                    <div class="chart-card chart-span-6">
+                        <div class="chart-header">
+                            <div class="chart-title">Poblacion vs intentos (riesgo)</div>
+                            <div class="chart-actions">
+                                <button class="icon-btn" data-download="chartPop">PNG</button>
+                            </div>
+                        </div>
+                        <p class="chart-desc">Cuadrantes de riesgo con eje de casos invertido para resaltar alta carga
+                            en baja poblacion.</p>
+                        <div id="chartPop" class="chart-body"></div>
+                    </div>
+                    <div class="chart-card chart-span-6">
+                        <div class="chart-header">
+                            <div class="chart-title">Clasificacion de riesgo por departamento</div>
+                        </div>
+                        <p class="chart-desc">Se calcula con las medianas de poblacion y casos del filtro activo (alto,
+                            medio, bajo).</p>
+                        <div id="riskTable"></div>
+                    </div>
+                    <div class="chart-card chart-span-12">
+                        <div class="chart-header">
+                            <div class="chart-title">Mapa departamental (tasa por 100k)</div>
+                        </div>
+                        <p class="chart-desc">Mapa oscuro con tasa por 100k. Bordes por region y saturacion segun
+                            intensidad.</p>
+                        <div id="mapDept" class="map-body"></div>
+                        <div id="mapStatus" class="notice" style="margin-top: 10px;">Cargando mapa...</div>
+                    </div>
+                    <div class="chart-card chart-span-6">
+                        <div class="chart-header">
+                            <div class="chart-title">Tabla geografica resumida</div>
+                        </div>
+                        <p class="chart-desc">Ranking rapido para lectura territorial sin geometria.</p>
+                        <div id="chartGeoTable" class="chart-body"></div>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div class="table-toolbar">
+                        <div class="left">
+                            <div>
+                                <label for="tableDimension">Dimension tabla</label>
+                                <select id="tableDimension">
+                                    <option value="departamento">Departamento</option>
+                                    <option value="municipio">Municipio</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="tableSearch">Buscar</label>
+                                <input type="text" id="tableSearch" placeholder="Buscar en tabla" />
+                            </div>
+                        </div>
+                        <div class="right">
+                            <button class="btn secondary" id="resetTableFilters">Limpiar busqueda</button>
+                        </div>
+                    </div>
+                    <div id="detailTable"></div>
+                </div>
+            </section>
+
+            <section id="data_model" class="view">
+                <div class="model-canvas">
+                    <svg class="model-lines" viewBox="0 0 1000 520" preserveAspectRatio="none">
+                        <line x1="470" y1="150" x2="300" y2="40" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
+                        <line x1="530" y1="150" x2="700" y2="40" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
+                        <line x1="500" y1="210" x2="500" y2="360" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
+                    </svg>
+                    <div class="model-grid">
+                        <div class="model-box dim">
+                            <div class="model-title">DimFechaSemana</div>
+                            <ul class="model-fields">
+                                <li>id_fecha_semana</li>
+                                <li>anio</li>
+                                <li>semana</li>
+                                <li>periodo_derivado</li>
+                            </ul>
+                        </div>
+                        <div class="model-box fact">
+                            <div class="model-title">FactIntentosSuicidio</div>
+                            <ul class="model-fields">
+                                <li>id_fecha_semana</li>
+                                <li>id_municipio</li>
+                                <li>id_departamento</li>
+                                <li>numero_intentos</li>
+                            </ul>
+                        </div>
+                        <div class="model-box dim">
+                            <div class="model-title">DimMunicipio</div>
+                            <ul class="model-fields">
+                                <li>id_municipio</li>
+                                <li>codigo_municipio</li>
+                                <li>municipio</li>
+                                <li>id_departamento</li>
+                            </ul>
+                        </div>
+                        <div class="model-box dim">
+                            <div class="model-title">DimDepartamento</div>
+                            <ul class="model-fields">
+                                <li>id_departamento</li>
+                                <li>codigo_departamento</li>
+                                <li>departamento</li>
+                                <li>region</li>
+                            </ul>
+                        </div>
+                        <div class="model-box fact">
+                            <div class="model-title">FactPIBDepartamental</div>
+                            <ul class="model-fields">
+                                <li>id_departamento</li>
+                                <li>pib_2021</li>
+                            </ul>
+                        </div>
+                        <div class="model-box fact">
+                            <div class="model-title">FactPoblacionDepartamental</div>
+                            <ul class="model-fields">
+                                <li>id_departamento</li>
+                                <li>poblacion_2021</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="footer-note">Modelo estrella inspirado en la vista de modelo de Power BI.</div>
+                </div>
+            </section>
+
+            <section id="sources" class="view">
+                <div class="sources-grid" id="sourcesCards"></div>
+                <div class="glass">
+                    <h3>Metadatos consolidados</h3>
+                    <table class="meta-table" id="sourcesTable"></table>
+                </div>
+                <div class="analysis-card" style="margin-top: 18px;">
+                    <h3>Metodologia y limitaciones</h3>
+                    <p id="methodologyNotes"></p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.2/dist/js/tabulator.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        const CONFIG = {
+            files: {
+                suicidios: "data/datos_suicidios_2021.csv",
+                pib: "data/PIB_departamental.csv",
+                poblacion: "data/poblacion_departamentos_2021.csv",
+                geojson: "mapas/ADMINISTRATIVO/MGN_ADM_DPTO_POLITICO.geojson"
+            },
+            palette: ["#14B8A6", "#60A5FA", "#A78BFA", "#F59E0B", "#F472B6", "#34D399"],
+            maxTableRows: 500
+        };
+
+        const state = {
+            department: "ALL",
+            municipio: "ALL",
+            weekMin: 1,
+            weekMax: 53,
+            metric: "total",
+            topN: 10,
+            orderX: "natural",
+            orderY: "natural",
+            tableDimension: "departamento"
+        };
+
+        const els = {
+            statusList: document.getElementById("statusList"),
+            mappingInfo: document.getElementById("mappingInfo"),
+            errorBanner: document.getElementById("errorBanner"),
+            filterDept: document.getElementById("filterDept"),
+            filterMun: document.getElementById("filterMun"),
+            filterWeekMin: document.getElementById("filterWeekMin"),
+            filterWeekMax: document.getElementById("filterWeekMax"),
+            filterMetric: document.getElementById("filterMetric"),
+            filterTopN: document.getElementById("filterTopN"),
+            orderAxisX: document.getElementById("orderAxisX"),
+            orderAxisY: document.getElementById("orderAxisY"),
+            resetFilters: document.getElementById("resetFilters"),
+            kpiTotal: document.getElementById("kpiTotal"),
+            kpiAvg: document.getElementById("kpiAvg"),
+            kpiMun: document.getElementById("kpiMun"),
+            kpiMunSub: document.getElementById("kpiMunSub"),
+            kpiDept: document.getElementById("kpiDept"),
+            kpiDeptSub: document.getElementById("kpiDeptSub"),
+            kpiRate: document.getElementById("kpiRate"),
+            kpiTop5: document.getElementById("kpiTop5"),
+            riskTable: document.getElementById("riskTable"),
+            tableDimension: document.getElementById("tableDimension"),
+            tableSearch: document.getElementById("tableSearch"),
+            resetTableFilters: document.getElementById("resetTableFilters"),
+            downloadTable: document.getElementById("downloadTable"),
+            sourcesCards: document.getElementById("sourcesCards"),
+            sourcesTable: document.getElementById("sourcesTable"),
+            methodologyNotes: document.getElementById("methodologyNotes"),
+            analysisSummary: document.getElementById("analysisSummary"),
+            analysisTemporal: document.getElementById("analysisTemporal"),
+            analysisTerritorial: document.getElementById("analysisTerritorial"),
+            analysisPopulation: document.getElementById("analysisPopulation"),
+            analysisPib: document.getElementById("analysisPib"),
+            analysisLimits: document.getElementById("analysisLimits")
+        };
+
+        let rawSuicidios = [];
+        let deptLookup = { byCode: new Map(), byName: new Map() };
+        let table = null;
+        let minWeek = 1;
+        let maxWeek = 53;
+        let mapInstance = null;
+        let mapLayer = null;
+        let geojsonData = null;
+
+        const numberFmt = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 });
+        const numberFmt2 = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 });
+
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                const viewId = btn.getAttribute("data-view");
+                document.querySelectorAll(".view").forEach((view) => {
+                    view.classList.toggle("active", view.id === viewId);
+                });
+                if (viewId === "dashboard" && mapInstance) {
+                    setTimeout(() => mapInstance.invalidateSize(), 200);
+                }
+            });
+        });
+
+        document.querySelectorAll("[data-download]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const chartId = btn.getAttribute("data-download");
+                const node = document.getElementById(chartId);
+                if (node) {
+                    Plotly.downloadImage(node, { format: "png", filename: chartId });
+                }
+            });
+        });
+
+        els.filterDept.addEventListener("change", () => {
+            state.department = els.filterDept.value;
+            state.municipio = "ALL";
+            updateMunicipioOptions();
+            renderAll();
+        });
+        els.filterMun.addEventListener("change", () => {
+            state.municipio = els.filterMun.value;
+            renderAll();
+        });
+        els.filterWeekMin.addEventListener("change", () => {
+            state.weekMin = clampWeek(parseInt(els.filterWeekMin.value, 10));
+            renderAll();
+        });
+        els.filterWeekMax.addEventListener("change", () => {
+            state.weekMax = clampWeek(parseInt(els.filterWeekMax.value, 10));
+            renderAll();
+        });
+        els.filterMetric.addEventListener("change", () => {
+            state.metric = els.filterMetric.value;
+            renderAll();
+        });
+        els.filterTopN.addEventListener("change", () => {
+            state.topN = parseInt(els.filterTopN.value, 10);
+            renderAll();
+        });
+        els.orderAxisX.addEventListener("change", () => {
+            state.orderX = els.orderAxisX.value;
+            renderAll();
+        });
+        els.orderAxisY.addEventListener("change", () => {
+            state.orderY = els.orderAxisY.value;
+            renderAll();
+        });
+        els.resetFilters.addEventListener("click", () => {
+            state.department = "ALL";
+            state.municipio = "ALL";
+            state.weekMin = minWeek;
+            state.weekMax = maxWeek;
+            state.metric = "total";
+            state.topN = 10;
+            state.orderX = "natural";
+            state.orderY = "natural";
+            syncFilterInputs();
+            renderAll();
+        });
+        els.tableDimension.addEventListener("change", () => {
+            state.tableDimension = els.tableDimension.value;
+            renderAll();
+        });
+        els.tableSearch.addEventListener("input", (event) => {
+            const value = event.target.value.trim();
+            if (!table) return;
+            if (!value) {
+                table.clearFilter();
+                return;
+            }
+            table.setFilter([
+                [{ field: "departamento", type: "like", value }],
+                [{ field: "municipio", type: "like", value }]
+            ]);
+        });
+        els.resetTableFilters.addEventListener("click", () => {
+            els.tableSearch.value = "";
+            if (table) table.clearFilter();
+        });
+        els.downloadTable.addEventListener("click", () => {
+            if (table) table.download("csv", "tabla_filtrada.csv");
+        });
+
+        function setLoading(isLoading) {
+            document.body.classList.toggle("loading", isLoading);
+        }
+
+        function showError(message) {
+            els.errorBanner.textContent = message;
+            els.errorBanner.classList.add("active");
+        }
+
+        function clearError() {
+            els.errorBanner.classList.remove("active");
+            els.errorBanner.textContent = "";
+        }
+
+        function clampWeek(value) {
+            if (!Number.isFinite(value)) return minWeek;
+            return Math.max(minWeek, Math.min(maxWeek, value));
+        }
+
+        function normalizeKey(value) {
+            return String(value || "")
+                .toUpperCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^A-Z0-9]+/g, " ")
+                .trim();
+        }
+
+        function formatDeptCode(value) {
+            if (value === null || value === undefined) return null;
+            const num = String(parseNumber(value)).padStart(2, "0");
+            return num;
+        }
+
+        function parseNumber(value) {
+            if (value === null || value === undefined) return null;
+            let raw = String(value).replace(/\s+/g, "").replace(/"/g, "");
+            if (!raw) return null;
+            if (/^\d{1,3},\d{3}$/.test(raw)) {
+                return Number(raw.replace(/,/g, ""));
+            }
+            if (raw.includes(",") && !raw.includes(".")) {
+                raw = raw.replace(/,/g, ".");
+            }
+            const num = Number(raw);
+            return Number.isFinite(num) ? num : null;
+        }
+
+        function formatNumber(value) {
+            return value === null || value === undefined ? "-" : numberFmt.format(value);
+        }
+
+        function formatRate(value) {
+            return value === null || value === undefined ? "-" : numberFmt2.format(value);
+        }
+
+        function median(values) {
+            if (!values.length) return null;
+            const sorted = values.slice().sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            if (sorted.length % 2 === 0) {
+                return (sorted[mid - 1] + sorted[mid]) / 2;
+            }
+            return sorted[mid];
+        }
+
+        function linearRegression(points) {
+            if (points.length < 2) return null;
+            const n = points.length;
+            const sumX = points.reduce((sum, p) => sum + p.x, 0);
+            const sumY = points.reduce((sum, p) => sum + p.y, 0);
+            const sumXY = points.reduce((sum, p) => sum + p.x * p.y, 0);
+            const sumXX = points.reduce((sum, p) => sum + p.x * p.x, 0);
+            const denom = n * sumXX - sumX * sumX;
+            if (denom === 0) return null;
+            const slope = (n * sumXY - sumX * sumY) / denom;
+            const intercept = (sumY - slope * sumX) / n;
+            return { slope, intercept };
+        }
+
+        function pickColumn(headers, candidates) {
+            const normalized = headers.map((h) => normalizeKey(h));
+            for (const candidate of candidates) {
+                const idx = normalized.indexOf(normalizeKey(candidate));
+                if (idx >= 0) return headers[idx];
+            }
+            return null;
+        }
+
+        function findYearColumn(headers, year) {
+            const regex = new RegExp(String(year));
+            const match = headers.find((h) => regex.test(h));
+            return match || null;
+        }
+
+        function loadCsv(path) {
+            return new Promise((resolve, reject) => {
+                Papa.parse(path, {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        if (results.errors && results.errors.length) {
+                            reject(new Error(results.errors[0].message));
+                            return;
+                        }
+                        resolve(results);
+                    },
+                    error: (err) => reject(err)
+                });
+            });
+        }
+
+        function getOrCreateDept(code, name) {
+            let record = null;
+            if (code !== null && code !== undefined && deptLookup.byCode.has(code)) {
+                record = deptLookup.byCode.get(code);
+            }
+            if (!record && name) {
+                const key = normalizeKey(name);
+                record = deptLookup.byName.get(key);
+            }
+            if (!record) {
+                record = { code: code ?? null, name: name || "", pib: null, pop: null, region: null, key: null };
+            }
+            if (code !== null && code !== undefined) {
+                deptLookup.byCode.set(code, record);
+            }
+            if (name) {
+                deptLookup.byName.set(normalizeKey(name), record);
+            }
+            if (!record.key) {
+                record.key = code !== null && code !== undefined ? `COD_${code}` : `NAME_${normalizeKey(name)}`;
+            }
+            if (!record.name && name) record.name = name;
+            return record;
+        }
+
+        function buildMappings(suicidiosResult, pibResult, popResult) {
+            const suicHeaders = suicidiosResult.meta.fields || [];
+            const pibHeaders = pibResult.meta.fields || [];
+            const popHeaders = popResult.meta.fields || [];
+
+            const mapping = {
+                suicidios: {
+                    municipio: pickColumn(suicHeaders, ["municipio_ocurrencia", "municipio", "mun", "mpio"]),
+                    departamento: pickColumn(suicHeaders, ["departamento_ocurrencia", "departamento", "depto", "departamentos"]),
+                    semana: pickColumn(suicHeaders, ["semana", "week"]),
+                    anio: pickColumn(suicHeaders, ["anio", "ano", "year"]),
+                    conteo: pickColumn(suicHeaders, ["conteo", "numero_intentos", "intentos", "total", "casos"]),
+                    codigo_departamento: pickColumn(suicHeaders, ["codigo_departamento", "codigo_departamento_divipola", "cod_depto", "dp"])
+                },
+                pib: {
+                    departamento: pickColumn(pibHeaders, ["departamentos", "departamento", "dpnom"]),
+                    codigo: pickColumn(pibHeaders, ["codigo_departamento_divipola", "codigo_departamento", "dp"]),
+                    pib: findYearColumn(pibHeaders, 2021)
+                },
+                poblacion: {
+                    departamento: pickColumn(popHeaders, ["dpnom", "departamentos", "departamento"]),
+                    codigo: pickColumn(popHeaders, ["dp", "codigo_departamento", "codigo_departamento_divipola"]),
+                    region: pickColumn(popHeaders, ["region", "region_geo"]),
+                    anio: pickColumn(popHeaders, ["ano", "anio", "year"]),
+                    total: pickColumn(popHeaders, ["total", "poblacion", "poblacion_2021"]),
+                    area: pickColumn(popHeaders, ["area_geografica", "area"])
+                }
+            };
+
+            const missing = [];
+            if (!mapping.suicidios.municipio) missing.push("suicidios: municipio");
+            if (!mapping.suicidios.departamento) missing.push("suicidios: departamento");
+            if (!mapping.suicidios.semana) missing.push("suicidios: semana");
+            if (!mapping.suicidios.anio) missing.push("suicidios: anio");
+            if (!mapping.suicidios.conteo) missing.push("suicidios: conteo");
+            if (!mapping.pib.departamento) missing.push("pib: departamento");
+            if (!mapping.pib.pib) missing.push("pib: columna 2021");
+            if (!mapping.poblacion.departamento) missing.push("poblacion: departamento");
+            if (!mapping.poblacion.total) missing.push("poblacion: total");
+
+            if (missing.length) {
+                throw new Error(`Faltan columnas criticas: ${missing.join(", ")}`);
+            }
+
+            return mapping;
+        }
+
+        function normalizeData(suicidiosResult, pibResult, popResult, mapping) {
+            deptLookup = { byCode: new Map(), byName: new Map() };
+
+            const pibRows = pibResult.data
+                .map((row) => ({
+                    code: parseNumber(row[mapping.pib.codigo]),
+                    name: String(row[mapping.pib.departamento] || "").trim(),
+                    pib: parseNumber(row[mapping.pib.pib])
+                }))
+                .filter((row) => row.name && row.pib !== null);
+
+            pibRows.forEach((row) => {
+                if (normalizeKey(row.name) === "COLOMBIA") return;
+                const record = getOrCreateDept(row.code, row.name);
+                record.pib = row.pib;
+            });
+
+            const popRows = popResult.data
+                .map((row) => ({
+                    code: parseNumber(row[mapping.poblacion.codigo]),
+                    name: String(row[mapping.poblacion.departamento] || "").trim(),
+                    region: String(row[mapping.poblacion.region] || "").trim(),
+                    year: parseNumber(row[mapping.poblacion.anio]),
+                    total: parseNumber(row[mapping.poblacion.total]),
+                    area: String(row[mapping.poblacion.area] || "").trim()
+                }))
+                .filter((row) => row.name && row.total !== null)
+                .filter((row) => !row.year || row.year === 2021)
+                .filter((row) => !row.area || normalizeKey(row.area) === "TOTAL");
+
+            popRows.forEach((row) => {
+                const record = getOrCreateDept(row.code, row.name);
+                record.pop = row.total;
+                if (row.region) record.region = row.region;
+            });
+
+            rawSuicidios = suicidiosResult.data
+                .map((row) => {
+                    const departamento = String(row[mapping.suicidios.departamento] || "").trim();
+                    const municipio = String(row[mapping.suicidios.municipio] || "").trim();
+                    const week = parseNumber(row[mapping.suicidios.semana]);
+                    const anio = parseNumber(row[mapping.suicidios.anio]);
+                    const conteo = parseNumber(row[mapping.suicidios.conteo]) || 0;
+                    const code = parseNumber(row[mapping.suicidios.codigo_departamento]);
+                    const deptRecord = getOrCreateDept(code, departamento);
+                    return {
+                        municipio,
+                        departamento,
+                        semana: week,
+                        anio,
+                        conteo,
+                        deptRecord
+                    };
+                })
+                .filter((row) => row.municipio && row.departamento && row.semana && row.anio);
+
+            minWeek = Math.min(...rawSuicidios.map((row) => row.semana));
+            maxWeek = Math.max(...rawSuicidios.map((row) => row.semana));
+            state.weekMin = minWeek;
+            state.weekMax = maxWeek;
+
+            const mappingText = [
+                `Suicidios: ${mapping.suicidios.municipio}, ${mapping.suicidios.departamento}, ${mapping.suicidios.semana}, ${mapping.suicidios.conteo}`,
+                `PIB: ${mapping.pib.departamento}, ${mapping.pib.pib}`,
+                `Poblacion: ${mapping.poblacion.departamento}, ${mapping.poblacion.total}`
+            ];
+            els.mappingInfo.textContent = `Columnas detectadas: ${mappingText.join(" | ")}`;
+        }
+
+        function updateStatus(totalRows) {
+            const now = new Date();
+            els.statusList.innerHTML = `
         <div>Estado: <span>Datos listos</span></div>
         <div>Registros: <span>${formatNumber(totalRows)}</span></div>
         <div>Ultima carga: <span>${now.toLocaleString("es-CO")}</span></div>
       `;
-    }
-
-    function syncFilterInputs() {
-      els.filterDept.value = state.department;
-      els.filterMun.value = state.municipio;
-      els.filterWeekMin.value = state.weekMin;
-      els.filterWeekMax.value = state.weekMax;
-      els.filterMetric.value = state.metric;
-      els.filterTopN.value = String(state.topN);
-      els.orderAxisX.value = state.orderX;
-      els.orderAxisY.value = state.orderY;
-    }
-
-    function updateDepartmentOptions() {
-      const departments = Array.from(new Set(rawSuicidios.map((row) => row.deptRecord.name || row.departamento)))
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b));
-      els.filterDept.innerHTML = `<option value="ALL">Todos</option>` +
-        departments.map((name) => `<option value="${name}">${name}</option>`).join("");
-    }
-
-    function updateMunicipioOptions() {
-      const rows = rawSuicidios.filter((row) => state.department === "ALL" || row.deptRecord.name === state.department);
-      const municipios = Array.from(new Set(rows.map((row) => row.municipio))).filter(Boolean).sort((a, b) => a.localeCompare(b));
-      els.filterMun.innerHTML = `<option value="ALL">Todos</option>` +
-        municipios.map((name) => `<option value="${name}">${name}</option>`).join("");
-      els.filterMun.value = state.municipio;
-    }
-
-    function filterRows() {
-      return rawSuicidios.filter((row) => {
-        if (state.department !== "ALL" && row.deptRecord.name !== state.department) return false;
-        if (state.municipio !== "ALL" && row.municipio !== state.municipio) return false;
-        if (row.semana < state.weekMin || row.semana > state.weekMax) return false;
-        return true;
-      });
-    }
-
-    function aggregate(rows) {
-      const deptMap = new Map();
-      const munMap = new Map();
-      const weekMap = new Map();
-      const deptWeekMap = new Map();
-
-      rows.forEach((row) => {
-        const dept = row.deptRecord;
-        const deptKey = dept.key;
-        const count = row.conteo || 0;
-
-        if (!deptMap.has(deptKey)) {
-          deptMap.set(deptKey, {
-            key: deptKey,
-            name: dept.name || row.departamento,
-            code: dept.code,
-            total: 0,
-            pop: dept.pop,
-            pib: dept.pib,
-            region: dept.region
-          });
         }
-        const deptEntry = deptMap.get(deptKey);
-        deptEntry.total += count;
 
-        const munKey = `${normalizeKey(row.municipio)}|${deptKey}`;
-        if (!munMap.has(munKey)) {
-          munMap.set(munKey, {
-            municipio: row.municipio,
-            departamento: deptEntry.name,
-            total: 0
-          });
+        function syncFilterInputs() {
+            els.filterDept.value = state.department;
+            els.filterMun.value = state.municipio;
+            els.filterWeekMin.value = state.weekMin;
+            els.filterWeekMax.value = state.weekMax;
+            els.filterMetric.value = state.metric;
+            els.filterTopN.value = String(state.topN);
+            els.orderAxisX.value = state.orderX;
+            els.orderAxisY.value = state.orderY;
         }
-        munMap.get(munKey).total += count;
 
-        weekMap.set(row.semana, (weekMap.get(row.semana) || 0) + count);
-
-        if (!deptWeekMap.has(deptKey)) {
-          deptWeekMap.set(deptKey, new Map());
+        function updateDepartmentOptions() {
+            const departments = Array.from(new Set(rawSuicidios.map((row) => row.deptRecord.name || row.departamento)))
+                .filter(Boolean)
+                .sort((a, b) => a.localeCompare(b));
+            els.filterDept.innerHTML = `<option value="ALL">Todos</option>` +
+                departments.map((name) => `<option value="${name}">${name}</option>`).join("");
         }
-        const weekEntry = deptWeekMap.get(deptKey);
-        weekEntry.set(row.semana, (weekEntry.get(row.semana) || 0) + count);
-      });
 
-      const deptList = Array.from(deptMap.values()).map((dept) => ({
-        ...dept,
-        rate: dept.pop ? (dept.total / dept.pop) * 100000 : null
-      }));
-      const munList = Array.from(munMap.values());
-      const weeks = Array.from(weekMap.keys()).sort((a, b) => a - b);
-
-      return { deptList, munList, weekMap, weeks, deptWeekMap };
-    }
-
-    function renderKpis(agg) {
-      const total = agg.deptList.reduce((sum, d) => sum + d.total, 0);
-      const avgWeekly = agg.weeks.length ? total / agg.weeks.length : 0;
-      const topMun = agg.munList.sort((a, b) => b.total - a.total)[0];
-      const topDept = agg.deptList.sort((a, b) => b.total - a.total)[0];
-      const top5 = agg.deptList.slice(0, 5).reduce((sum, d) => sum + d.total, 0);
-      const popSum = agg.deptList.reduce((sum, d) => sum + (d.pop || 0), 0);
-      const rateNational = popSum ? (total / popSum) * 100000 : null;
-
-      els.kpiTotal.textContent = formatNumber(total);
-      els.kpiAvg.textContent = formatRate(avgWeekly);
-      els.kpiMun.textContent = topMun ? `${topMun.municipio}` : "-";
-      els.kpiMunSub.textContent = topMun ? formatNumber(topMun.total) : "Sin datos";
-      els.kpiDept.textContent = topDept ? `${topDept.name}` : "-";
-      els.kpiDeptSub.textContent = topDept ? formatNumber(topDept.total) : "Sin datos";
-      els.kpiRate.textContent = rateNational ? formatRate(rateNational) : "-";
-      els.kpiTop5.textContent = total ? `${formatRate((top5 / total) * 100)}%` : "-";
-
-      return { total, avgWeekly, topMun, topDept, rateNational, top5Share: total ? (top5 / total) * 100 : 0 };
-    }
-
-    function baseLayout(title) {
-      return {
-        title: { text: title, font: { size: 12, color: "#94A3B8" } },
-        paper_bgcolor: "rgba(0,0,0,0)",
-        plot_bgcolor: "rgba(0,0,0,0)",
-        margin: { t: 30, l: 40, r: 20, b: 40 },
-        font: { color: "#E5E7EB", family: "Manrope, sans-serif" },
-        xaxis: { gridcolor: "rgba(148,163,184,0.15)", zerolinecolor: "rgba(148,163,184,0.2)" },
-        yaxis: { gridcolor: "rgba(148,163,184,0.15)", zerolinecolor: "rgba(148,163,184,0.2)" }
-      };
-    }
-
-    function renderTrend(agg) {
-      let x = [...agg.weeks];
-      let y = x.map((w) => agg.weekMap.get(w) || 0);
-      if (state.orderX === "desc") {
-        x = x.slice().reverse();
-        y = y.slice().reverse();
-      }
-      Plotly.react("chartTrend", [
-        {
-          x,
-          y,
-          type: "scatter",
-          mode: "lines",
-          fill: "tozeroy",
-          line: { color: CONFIG.palette[0], width: 3 },
-          hovertemplate: "Semana %{x}<br>Intentos %{y}<extra></extra>"
+        function updateMunicipioOptions() {
+            const rows = rawSuicidios.filter((row) => state.department === "ALL" || row.deptRecord.name === state.department);
+            const municipios = Array.from(new Set(rows.map((row) => row.municipio))).filter(Boolean).sort((a, b) => a.localeCompare(b));
+            els.filterMun.innerHTML = `<option value="ALL">Todos</option>` +
+                municipios.map((name) => `<option value="${name}">${name}</option>`).join("");
+            els.filterMun.value = state.municipio;
         }
-      ], baseLayout(""), { displayModeBar: false, responsive: true });
-    }
 
-    function renderDeptRanking(agg) {
-      let sorted = [...agg.deptList].sort((a, b) => {
-        const valA = state.metric === "rate" ? (a.rate || 0) : a.total;
-        const valB = state.metric === "rate" ? (b.rate || 0) : b.total;
-        return valB - valA;
-      });
-      if (state.orderY === "asc") sorted = sorted.slice().reverse();
-      sorted = sorted.slice(0, state.topN);
-      Plotly.react("chartDeptRank", [
-        {
-          x: sorted.map((d) => state.metric === "rate" ? d.rate || 0 : d.total),
-          y: sorted.map((d) => d.name),
-          type: "bar",
-          orientation: "h",
-          marker: { color: CONFIG.palette[1] },
-          hovertemplate: "%{y}<br>Valor %{x}<extra></extra>"
+        function filterRows() {
+            return rawSuicidios.filter((row) => {
+                if (state.department !== "ALL" && row.deptRecord.name !== state.department) return false;
+                if (state.municipio !== "ALL" && row.municipio !== state.municipio) return false;
+                if (row.semana < state.weekMin || row.semana > state.weekMax) return false;
+                return true;
+            });
         }
-      ], {
-        ...baseLayout(""),
-        margin: { t: 20, l: 120, r: 20, b: 40 }
-      }, { displayModeBar: false, responsive: true });
 
-      const chart = document.getElementById("chartDeptRank");
-      chart.on("plotly_click", (event) => {
-        const deptName = event.points[0].y;
-        state.department = deptName;
-        syncFilterInputs();
-        updateMunicipioOptions();
-        renderAll();
-      });
-    }
+        function aggregate(rows) {
+            const deptMap = new Map();
+            const munMap = new Map();
+            const weekMap = new Map();
+            const deptWeekMap = new Map();
 
-    function renderMunRanking(agg) {
-      let sorted = [...agg.munList].sort((a, b) => b.total - a.total);
-      if (state.orderY === "asc") sorted = sorted.slice().reverse();
-      sorted = sorted.slice(0, state.topN);
-      Plotly.react("chartMunRank", [
-        {
-          x: sorted.map((d) => d.total),
-          y: sorted.map((d) => d.municipio),
-          type: "bar",
-          orientation: "h",
-          marker: { color: CONFIG.palette[2] },
-          hovertemplate: "%{y}<br>Intentos %{x}<extra></extra>"
+            rows.forEach((row) => {
+                const dept = row.deptRecord;
+                const deptKey = dept.key;
+                const count = row.conteo || 0;
+
+                if (!deptMap.has(deptKey)) {
+                    deptMap.set(deptKey, {
+                        key: deptKey,
+                        name: dept.name || row.departamento,
+                        code: dept.code,
+                        total: 0,
+                        pop: dept.pop,
+                        pib: dept.pib,
+                        region: dept.region
+                    });
+                }
+                const deptEntry = deptMap.get(deptKey);
+                deptEntry.total += count;
+
+                const munKey = `${normalizeKey(row.municipio)}|${deptKey}`;
+                if (!munMap.has(munKey)) {
+                    munMap.set(munKey, {
+                        municipio: row.municipio,
+                        departamento: deptEntry.name,
+                        total: 0
+                    });
+                }
+                munMap.get(munKey).total += count;
+
+                weekMap.set(row.semana, (weekMap.get(row.semana) || 0) + count);
+
+                if (!deptWeekMap.has(deptKey)) {
+                    deptWeekMap.set(deptKey, new Map());
+                }
+                const weekEntry = deptWeekMap.get(deptKey);
+                weekEntry.set(row.semana, (weekEntry.get(row.semana) || 0) + count);
+            });
+
+            const deptList = Array.from(deptMap.values()).map((dept) => ({
+                ...dept,
+                rate: dept.pop ? (dept.total / dept.pop) * 100000 : null
+            }));
+            const munList = Array.from(munMap.values());
+            const weeks = Array.from(weekMap.keys()).sort((a, b) => a - b);
+
+            return { deptList, munList, weekMap, weeks, deptWeekMap };
         }
-      ], {
-        ...baseLayout(""),
-        margin: { t: 20, l: 130, r: 20, b: 40 }
-      }, { displayModeBar: false, responsive: true });
-    }
 
-    function renderHeatmap(agg) {
-      let deptSorted = [...agg.deptList].sort((a, b) => b.total - a.total);
-      if (state.orderY === "asc") deptSorted = deptSorted.slice().reverse();
-      deptSorted = deptSorted.slice(0, state.topN);
-      let weeks = [...agg.weeks];
-      if (state.orderX === "desc") weeks = weeks.slice().reverse();
-      const z = deptSorted.map((dept) => {
-        const weekMap = agg.deptWeekMap.get(dept.key) || new Map();
-        return weeks.map((w) => {
-          const total = weekMap.get(w) || 0;
-          return state.metric === "rate" && dept.pop ? (total / dept.pop) * 100000 : total;
-        });
-      });
+        function renderKpis(agg) {
+            const total = agg.deptList.reduce((sum, d) => sum + d.total, 0);
+            const avgWeekly = agg.weeks.length ? total / agg.weeks.length : 0;
+            const topMun = agg.munList.sort((a, b) => b.total - a.total)[0];
+            const topDept = agg.deptList.sort((a, b) => b.total - a.total)[0];
+            const top5 = agg.deptList.slice(0, 5).reduce((sum, d) => sum + d.total, 0);
+            const popSum = agg.deptList.reduce((sum, d) => sum + (d.pop || 0), 0);
+            const rateNational = popSum ? (total / popSum) * 100000 : null;
 
-      Plotly.react("chartHeatmap", [
-        {
-          z,
-          x: weeks,
-          y: deptSorted.map((d) => d.name),
-          type: "heatmap",
-          colorscale: [
-            [0, "#0F172A"],
-            [0.3, "#14B8A6"],
-            [0.6, "#60A5FA"],
-            [1, "#F59E0B"]
-          ],
-          hovertemplate: "Depto %{y}<br>Semana %{x}<br>Valor %{z}<extra></extra>"
+            els.kpiTotal.textContent = formatNumber(total);
+            els.kpiAvg.textContent = formatRate(avgWeekly);
+            els.kpiMun.textContent = topMun ? `${topMun.municipio}` : "-";
+            els.kpiMunSub.textContent = topMun ? formatNumber(topMun.total) : "Sin datos";
+            els.kpiDept.textContent = topDept ? `${topDept.name}` : "-";
+            els.kpiDeptSub.textContent = topDept ? formatNumber(topDept.total) : "Sin datos";
+            els.kpiRate.textContent = rateNational ? formatRate(rateNational) : "-";
+            els.kpiTop5.textContent = total ? `${formatRate((top5 / total) * 100)}%` : "-";
+
+            return { total, avgWeekly, topMun, topDept, rateNational, top5Share: total ? (top5 / total) * 100 : 0 };
         }
-      ], {
-        ...baseLayout(""),
-        margin: { t: 20, l: 140, r: 20, b: 40 }
-      }, { displayModeBar: false, responsive: true });
-    }
 
-    function renderScatter(agg, chartId, xKey, title) {
-      let points = agg.deptList
-        .filter((d) => d[xKey])
-        .map((d) => ({
-          name: d.name,
-          x: d[xKey],
-          y: state.metric === "rate" ? d.rate : d.total,
-          pop: d.pop,
-          pib: d.pib
-        }));
-      if (state.orderX === "asc") points = points.slice().sort((a, b) => a.x - b.x);
-      if (state.orderX === "desc") points = points.slice().sort((a, b) => b.x - a.x);
-      if (state.orderY === "asc") points = points.slice().sort((a, b) => a.y - b.y);
-      if (state.orderY === "desc") points = points.slice().sort((a, b) => b.y - a.y);
-
-      Plotly.react(chartId, [
-        {
-          x: points.map((p) => p.x),
-          y: points.map((p) => p.y),
-          text: points.map((p) => p.name),
-          mode: "markers",
-          type: "scatter",
-          marker: {
-            size: 12,
-            color: CONFIG.palette[3],
-            line: { color: "#0B1020", width: 1 }
-          },
-          hovertemplate: "%{text}<br>X %{x}<br>Y %{y}<extra></extra>"
+        function baseLayout(title) {
+            return {
+                title: { text: title, font: { size: 12, color: "#94A3B8" } },
+                paper_bgcolor: "rgba(0,0,0,0)",
+                plot_bgcolor: "rgba(0,0,0,0)",
+                margin: { t: 30, l: 40, r: 20, b: 40 },
+                font: { color: "#E5E7EB", family: "Manrope, sans-serif" },
+                xaxis: { gridcolor: "rgba(148,163,184,0.15)", zerolinecolor: "rgba(148,163,184,0.2)" },
+                yaxis: { gridcolor: "rgba(148,163,184,0.15)", zerolinecolor: "rgba(148,163,184,0.2)" }
+            };
         }
-      ], baseLayout(title), { displayModeBar: false, responsive: true });
-    }
 
-    function renderPibScatter(agg) {
-      let points = agg.deptList
-        .filter((d) => d.pib && Number.isFinite(d.total))
-        .map((d) => ({
-          name: d.name,
-          x: d.total,
-          y: d.pib,
-          rate: d.rate,
-          pop: d.pop
-        }));
-      if (state.orderX === "asc") points = points.slice().sort((a, b) => a.x - b.x);
-      if (state.orderX === "desc") points = points.slice().sort((a, b) => b.x - a.x);
-      if (state.orderY === "asc") points = points.slice().sort((a, b) => a.y - b.y);
-      if (state.orderY === "desc") points = points.slice().sort((a, b) => b.y - a.y);
-
-      const xValues = points.map((p) => p.x);
-      const yValues = points.map((p) => p.y);
-      const xMedian = median(xValues);
-      const yMedian = median(yValues);
-      const regression = linearRegression(points);
-      const xMin = Math.min(...xValues);
-      const xMax = Math.max(...xValues);
-
-      const traces = [
-        {
-          x: xValues,
-          y: yValues,
-          text: points.map((p) => p.name),
-          mode: "markers",
-          type: "scatter",
-          marker: {
-            size: 12,
-            color: CONFIG.palette[3],
-            line: { color: "#0B1020", width: 1 }
-          },
-          hovertemplate: "%{text}<br>Casos %{x}<br>PIB %{y}<extra></extra>"
+        function renderTrend(agg) {
+            let x = [...agg.weeks];
+            let y = x.map((w) => agg.weekMap.get(w) || 0);
+            if (state.orderX === "desc") {
+                x = x.slice().reverse();
+                y = y.slice().reverse();
+            }
+            let peakWeek = "-";
+            let peakValue = 0;
+            if (y.length) {
+                peakValue = Math.max(...y);
+                const peakIndex = y.indexOf(peakValue);
+                peakWeek = x[peakIndex];
+            }
+            const peakText = peakWeek === "-"
+                ? "Semana pico: -"
+                : `Semana pico: ${peakWeek} (${formatNumber(peakValue)} intentos)`;
+            const peakEl = document.getElementById("trendPeak");
+            if (peakEl) peakEl.textContent = peakText;
+            Plotly.react("chartTrend", [
+                {
+                    x,
+                    y,
+                    type: "scatter",
+                    mode: "lines",
+                    fill: "tozeroy",
+                    line: { color: CONFIG.palette[0], width: 3 },
+                    hovertemplate: "Semana %{x}<br>Intentos %{y}<extra></extra>"
+                }
+            ], baseLayout(""), { displayModeBar: false, responsive: true });
         }
-      ];
 
-      if (regression) {
-        traces.push({
-          x: [xMin, xMax],
-          y: [regression.slope * xMin + regression.intercept, regression.slope * xMax + regression.intercept],
-          mode: "lines",
-          line: { color: CONFIG.palette[1], width: 2, dash: "dash" },
-          hoverinfo: "skip"
-        });
-      }
+        function renderDeptRanking(agg) {
+            let sorted = [...agg.deptList].sort((a, b) => {
+                const valA = state.metric === "rate" ? (a.rate || 0) : a.total;
+                const valB = state.metric === "rate" ? (b.rate || 0) : b.total;
+                return valB - valA;
+            });
+            if (state.orderY === "asc") sorted = sorted.slice().reverse();
+            sorted = sorted.slice(0, state.topN);
+            Plotly.react("chartDeptRank", [
+                {
+                    x: sorted.map((d) => state.metric === "rate" ? d.rate || 0 : d.total),
+                    y: sorted.map((d) => d.name),
+                    type: "bar",
+                    orientation: "h",
+                    marker: { color: CONFIG.palette[1] },
+                    hovertemplate: "%{y}<br>Valor %{x}<extra></extra>"
+                }
+            ], {
+                ...baseLayout(""),
+                margin: { t: 20, l: 120, r: 20, b: 40 }
+            }, { displayModeBar: false, responsive: true });
 
-      Plotly.react("chartPib", traces, {
-        ...baseLayout(""),
-        xaxis: { title: "Casos", gridcolor: "rgba(148,163,184,0.15)" },
-        yaxis: { title: "PIB 2021", gridcolor: "rgba(148,163,184,0.15)" },
-        shapes: [
-          {
-            type: "line",
-            x0: xMedian,
-            x1: xMedian,
-            y0: Math.min(...yValues),
-            y1: Math.max(...yValues),
-            line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
-          },
-          {
-            type: "line",
-            x0: xMin,
-            x1: xMax,
-            y0: yMedian,
-            y1: yMedian,
-            line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
-          }
-        ]
-      }, { displayModeBar: false, responsive: true });
-    }
-
-    function renderPopRiskScatter(agg) {
-      let points = agg.deptList
-        .filter((d) => d.pop && Number.isFinite(d.total))
-        .map((d) => ({
-          name: d.name,
-          x: d.pop,
-          y: d.total,
-          rate: d.rate
-        }));
-      if (state.orderX === "asc") points = points.slice().sort((a, b) => a.x - b.x);
-      if (state.orderX === "desc") points = points.slice().sort((a, b) => b.x - a.x);
-      if (state.orderY === "asc") points = points.slice().sort((a, b) => a.y - b.y);
-      if (state.orderY === "desc") points = points.slice().sort((a, b) => b.y - a.y);
-
-      const xValues = points.map((p) => p.x);
-      const yValues = points.map((p) => p.y);
-      const xMedian = median(xValues);
-      const yMedian = median(yValues);
-      const xMin = Math.min(...xValues);
-      const xMax = Math.max(...xValues);
-      const yMin = Math.min(...yValues);
-      const yMax = Math.max(...yValues);
-
-      const shapes = [
-        {
-          type: "rect",
-          x0: xMin,
-          x1: xMedian,
-          y0: yMedian,
-          y1: yMax,
-          fillcolor: "rgba(244, 114, 182, 0.18)",
-          line: { width: 0 }
-        },
-        {
-          type: "rect",
-          x0: xMedian,
-          x1: xMax,
-          y0: yMin,
-          y1: yMedian,
-          fillcolor: "rgba(52, 211, 153, 0.18)",
-          line: { width: 0 }
-        },
-        {
-          type: "rect",
-          x0: xMin,
-          x1: xMedian,
-          y0: yMin,
-          y1: yMedian,
-          fillcolor: "rgba(245, 158, 11, 0.16)",
-          line: { width: 0 }
-        },
-        {
-          type: "rect",
-          x0: xMedian,
-          x1: xMax,
-          y0: yMedian,
-          y1: yMax,
-          fillcolor: "rgba(245, 158, 11, 0.16)",
-          line: { width: 0 }
-        },
-        {
-          type: "line",
-          x0: xMedian,
-          x1: xMedian,
-          y0: yMin,
-          y1: yMax,
-          line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
-        },
-        {
-          type: "line",
-          x0: xMin,
-          x1: xMax,
-          y0: yMedian,
-          y1: yMedian,
-          line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
+            const chart = document.getElementById("chartDeptRank");
+            chart.on("plotly_click", (event) => {
+                const deptName = event.points[0].y;
+                state.department = deptName;
+                syncFilterInputs();
+                updateMunicipioOptions();
+                renderAll();
+            });
         }
-      ];
 
-      const annotations = [
-        {
-          x: xMin + (xMedian - xMin) * 0.5,
-          y: yMedian + (yMax - yMedian) * 0.5,
-          text: "Riesgo alto",
-          showarrow: false,
-          font: { color: "#FBCFE8", size: 12 }
-        },
-        {
-          x: xMedian + (xMax - xMedian) * 0.5,
-          y: yMin + (yMedian - yMin) * 0.5,
-          text: "Riesgo bajo",
-          showarrow: false,
-          font: { color: "#D1FAE5", size: 12 }
-        },
-        {
-          x: xMin + (xMedian - xMin) * 0.5,
-          y: yMin + (yMedian - yMin) * 0.5,
-          text: "Riesgo medio",
-          showarrow: false,
-          font: { color: "#FCD34D", size: 12 }
-        },
-        {
-          x: xMedian + (xMax - xMedian) * 0.5,
-          y: yMedian + (yMax - yMedian) * 0.5,
-          text: "Riesgo medio",
-          showarrow: false,
-          font: { color: "#FCD34D", size: 12 }
+        function renderMunRanking(agg) {
+            let sorted = [...agg.munList].sort((a, b) => b.total - a.total);
+            if (state.orderY === "asc") sorted = sorted.slice().reverse();
+            sorted = sorted.slice(0, state.topN);
+            Plotly.react("chartMunRank", [
+                {
+                    x: sorted.map((d) => d.total),
+                    y: sorted.map((d) => d.municipio),
+                    type: "bar",
+                    orientation: "h",
+                    marker: { color: CONFIG.palette[2] },
+                    hovertemplate: "%{y}<br>Intentos %{x}<extra></extra>"
+                }
+            ], {
+                ...baseLayout(""),
+                margin: { t: 20, l: 130, r: 20, b: 40 }
+            }, { displayModeBar: false, responsive: true });
         }
-      ];
 
-      const pointColors = points.map((p) => {
-        const lowPop = p.x <= xMedian;
-        const highCases = p.y > yMedian;
-        if (lowPop && highCases) return "#F472B6";
-        if (!lowPop && !highCases) return "#34D399";
-        return "#F59E0B";
-      });
+        function renderHeatmap(agg) {
+            let deptSorted = [...agg.deptList].sort((a, b) => b.total - a.total);
+            if (state.orderY === "asc") deptSorted = deptSorted.slice().reverse();
+            deptSorted = deptSorted.slice(0, state.topN);
+            let weeks = [...agg.weeks];
+            if (state.orderX === "desc") weeks = weeks.slice().reverse();
+            const z = deptSorted.map((dept) => {
+                const weekMap = agg.deptWeekMap.get(dept.key) || new Map();
+                return weeks.map((w) => {
+                    const total = weekMap.get(w) || 0;
+                    return state.metric === "rate" && dept.pop ? (total / dept.pop) * 100000 : total;
+                });
+            });
 
-      Plotly.react("chartPop", [
-        {
-          x: xValues,
-          y: yValues,
-          text: points.map((p) => p.name),
-          mode: "markers",
-          type: "scatter",
-          marker: {
-            size: 12,
-            color: pointColors,
-            line: { color: "#0B1020", width: 1 }
-          },
-          hovertemplate: "%{text}<br>Poblacion %{x}<br>Casos %{y}<extra></extra>"
+            Plotly.react("chartHeatmap", [
+                {
+                    z,
+                    x: weeks,
+                    y: deptSorted.map((d) => d.name),
+                    type: "heatmap",
+                    colorscale: [
+                        [0, "#0F172A"],
+                        [0.3, "#14B8A6"],
+                        [0.6, "#60A5FA"],
+                        [1, "#F59E0B"]
+                    ],
+                    hovertemplate: "Depto %{y}<br>Semana %{x}<br>Valor %{z}<extra></extra>"
+                }
+            ], {
+                ...baseLayout(""),
+                margin: { t: 20, l: 140, r: 20, b: 40 }
+            }, { displayModeBar: false, responsive: true });
         }
-      ], {
-        ...baseLayout(""),
-        xaxis: { title: "Poblacion", gridcolor: "rgba(148,163,184,0.15)" },
-        yaxis: { title: "Casos (eje invertido)", gridcolor: "rgba(148,163,184,0.15)", autorange: "reversed" },
-        shapes,
-        annotations
-      }, { displayModeBar: false, responsive: true });
-    }
 
-    function renderGeoTable(agg) {
-      let sorted = [...agg.deptList].sort((a, b) => b.total - a.total);
-      if (state.orderY === "asc") sorted = sorted.slice().reverse();
-      sorted = sorted.slice(0, state.topN);
-      const data = sorted.map((d) => ({
-        departamento: d.name,
-        total: d.total,
-        rate: d.rate
-      }));
-      Plotly.react("chartGeoTable", [
-        {
-          type: "table",
-          header: {
-            values: ["Departamento", "Total", "Tasa 100k"],
-            fill: { color: "rgba(15, 23, 42, 0.92)" },
-            font: { color: "#E5E7EB" },
-            align: "left"
-          },
-          cells: {
-            values: [
-              data.map((d) => d.departamento),
-              data.map((d) => formatNumber(d.total)),
-              data.map((d) => formatRate(d.rate))
-            ],
-            fill: { color: [
-              "rgba(17, 24, 39, 0.88)",
-              "rgba(30, 41, 59, 0.78)",
-              "rgba(17, 24, 39, 0.88)"
-            ] },
-            font: { color: "#E5E7EB" },
-            align: "left"
-          }
+        function renderScatter(agg, chartId, xKey, title) {
+            let points = agg.deptList
+                .filter((d) => d[xKey])
+                .map((d) => ({
+                    name: d.name,
+                    x: d[xKey],
+                    y: state.metric === "rate" ? d.rate : d.total,
+                    pop: d.pop,
+                    pib: d.pib
+                }));
+            if (state.orderX === "asc") points = points.slice().sort((a, b) => a.x - b.x);
+            if (state.orderX === "desc") points = points.slice().sort((a, b) => b.x - a.x);
+            if (state.orderY === "asc") points = points.slice().sort((a, b) => a.y - b.y);
+            if (state.orderY === "desc") points = points.slice().sort((a, b) => b.y - a.y);
+
+            Plotly.react(chartId, [
+                {
+                    x: points.map((p) => p.x),
+                    y: points.map((p) => p.y),
+                    text: points.map((p) => p.name),
+                    mode: "markers",
+                    type: "scatter",
+                    marker: {
+                        size: 12,
+                        color: CONFIG.palette[3],
+                        line: { color: "#0B1020", width: 1 }
+                    },
+                    hovertemplate: "%{text}<br>X %{x}<br>Y %{y}<extra></extra>"
+                }
+            ], baseLayout(title), { displayModeBar: false, responsive: true });
         }
-      ], {
-        margin: { t: 10, l: 10, r: 10, b: 10 },
-        paper_bgcolor: "rgba(0,0,0,0)",
-        plot_bgcolor: "rgba(0,0,0,0)"
-      }, { displayModeBar: false, responsive: true });
-    }
 
-    function getRegionPalette(region) {
-      const key = normalizeKey(region);
-      if (key.includes("CARIBE")) return { hue: 0, border: "#F43F5E" };
-      if (key.includes("ANDINA")) return { hue: 210, border: "#38BDF8" };
-      if (key.includes("PACIF")) return { hue: 170, border: "#34D399" };
-      if (key.includes("ORINOQ")) return { hue: 110, border: "#A3E635" };
-      if (key.includes("AMAZ")) return { hue: 270, border: "#C084FC" };
-      if (key.includes("INSUL")) return { hue: 35, border: "#FBBF24" };
-      return { hue: 200, border: "#94A3B8" };
-    }
+        function renderPibScatter(agg) {
+            let points = agg.deptList
+                .filter((d) => d.pib && Number.isFinite(d.total))
+                .map((d) => ({
+                    name: d.name,
+                    x: d.total,
+                    y: d.pib,
+                    rate: d.rate,
+                    pop: d.pop
+                }));
+            if (state.orderX === "asc") points = points.slice().sort((a, b) => a.x - b.x);
+            if (state.orderX === "desc") points = points.slice().sort((a, b) => b.x - a.x);
+            if (state.orderY === "asc") points = points.slice().sort((a, b) => a.y - b.y);
+            if (state.orderY === "desc") points = points.slice().sort((a, b) => b.y - a.y);
 
-    function colorByRate(region, rate, maxRate) {
-      const palette = getRegionPalette(region);
-      const norm = maxRate ? Math.min(rate / maxRate, 1) : 0;
-      const saturation = 35 + norm * 55;
-      const lightness = 35 + (1 - norm) * 22;
-      return `hsl(${palette.hue}, ${saturation}%, ${lightness}%)`;
-    }
+            const xValues = points.map((p) => p.x);
+            const yValues = points.map((p) => p.y);
+            const xMedian = median(xValues);
+            const yMedian = median(yValues);
+            const regression = linearRegression(points);
+            const xMin = Math.min(...xValues);
+            const xMax = Math.max(...xValues);
 
-    function initMap() {
-      if (mapInstance) return;
-      mapInstance = L.map("mapDept", { zoomControl: false, preferCanvas: true });
-      mapInstance.setView([4.5, -74], 5);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap &copy; CARTO",
-        maxZoom: 10,
-        minZoom: 4
-      }).addTo(mapInstance);
-      L.control.zoom({ position: "bottomright" }).addTo(mapInstance);
-    }
+            const traces = [
+                {
+                    x: xValues,
+                    y: yValues,
+                    text: points.map((p) => p.name),
+                    mode: "markers",
+                    type: "scatter",
+                    marker: {
+                        size: 12,
+                        color: CONFIG.palette[3],
+                        line: { color: "#0B1020", width: 1 }
+                    },
+                    hovertemplate: "%{text}<br>Casos %{x}<br>PIB %{y}<extra></extra>"
+                }
+            ];
 
-    function renderMap(agg) {
-      if (!geojsonData) return;
-      initMap();
+            if (regression) {
+                traces.push({
+                    x: [xMin, xMax],
+                    y: [regression.slope * xMin + regression.intercept, regression.slope * xMax + regression.intercept],
+                    mode: "lines",
+                    line: { color: CONFIG.palette[1], width: 2, dash: "dash" },
+                    hoverinfo: "skip"
+                });
+            }
 
-      const rateByCode = new Map();
-      const rateByName = new Map();
-      const regionByName = new Map();
-      const regionByCode = new Map();
-      const rates = [];
-
-      agg.deptList.forEach((dept) => {
-        const rate = dept.rate || 0;
-        rates.push(rate);
-        const code = formatDeptCode(dept.code);
-        if (code) rateByCode.set(code, rate);
-        if (dept.name) {
-          rateByName.set(normalizeKey(dept.name), rate);
-          if (dept.region) regionByName.set(normalizeKey(dept.name), dept.region);
+            Plotly.react("chartPib", traces, {
+                ...baseLayout(""),
+                xaxis: { title: "Casos", gridcolor: "rgba(148,163,184,0.15)" },
+                yaxis: { title: "PIB 2021", gridcolor: "rgba(148,163,184,0.15)" },
+                shapes: [
+                    {
+                        type: "line",
+                        x0: xMedian,
+                        x1: xMedian,
+                        y0: Math.min(...yValues),
+                        y1: Math.max(...yValues),
+                        line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
+                    },
+                    {
+                        type: "line",
+                        x0: xMin,
+                        x1: xMax,
+                        y0: yMedian,
+                        y1: yMedian,
+                        line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
+                    }
+                ]
+            }, { displayModeBar: false, responsive: true });
         }
-        if (code && dept.region) regionByCode.set(code, dept.region);
-      });
 
-      const maxRate = Math.max(...rates, 0);
+        function renderPopRiskScatter(agg) {
+            let points = agg.deptList
+                .filter((d) => d.pop && Number.isFinite(d.total))
+                .map((d) => ({
+                    name: d.name,
+                    x: d.pop,
+                    y: d.total,
+                    rate: d.rate
+                }));
+            if (state.orderX === "asc") points = points.slice().sort((a, b) => a.x - b.x);
+            if (state.orderX === "desc") points = points.slice().sort((a, b) => b.x - a.x);
+            if (state.orderY === "asc") points = points.slice().sort((a, b) => a.y - b.y);
+            if (state.orderY === "desc") points = points.slice().sort((a, b) => b.y - a.y);
 
-      if (mapLayer) {
-        mapLayer.remove();
-      }
+            const xValues = points.map((p) => p.x);
+            const yValues = points.map((p) => p.y);
+            const xMedian = median(xValues);
+            const yMedian = median(yValues);
+            const xMin = Math.min(...xValues);
+            const xMax = Math.max(...xValues);
+            const yMin = Math.min(...yValues);
+            const yMax = Math.max(...yValues);
 
-      mapLayer = L.geoJSON(geojsonData, {
-        style: (feature) => {
-          const props = feature.properties || {};
-          const code = props.dpto_ccdgo;
-          const name = props.dpto_cnmbr;
-          const rate = rateByCode.get(code) ?? rateByName.get(normalizeKey(name)) ?? 0;
-          const region = regionByCode.get(code) || regionByName.get(normalizeKey(name)) || "";
-          const palette = getRegionPalette(region);
-          return {
-            color: palette.border,
-            weight: 2.6,
-            opacity: 0.9,
-            fillColor: colorByRate(region, rate, maxRate),
-            fillOpacity: 0.75
-          };
-        },
-        onEachFeature: (feature, layer) => {
-          const props = feature.properties || {};
-          const name = props.dpto_cnmbr || "Departamento";
-          const code = props.dpto_ccdgo;
-          const rate = rateByCode.get(code) ?? rateByName.get(normalizeKey(name)) ?? 0;
-          const region = regionByCode.get(code) || regionByName.get(normalizeKey(name)) || "Sin region";
-          layer.bindTooltip(
-            `<strong>${name}</strong><br>Region: ${region}<br>Tasa 100k: ${formatRate(rate)}`,
-            { sticky: true }
-          );
+            const shapes = [
+                {
+                    type: "rect",
+                    x0: xMin,
+                    x1: xMedian,
+                    y0: yMedian,
+                    y1: yMax,
+                    fillcolor: "rgba(244, 114, 182, 0.18)",
+                    line: { width: 0 }
+                },
+                {
+                    type: "rect",
+                    x0: xMedian,
+                    x1: xMax,
+                    y0: yMin,
+                    y1: yMedian,
+                    fillcolor: "rgba(52, 211, 153, 0.18)",
+                    line: { width: 0 }
+                },
+                {
+                    type: "rect",
+                    x0: xMin,
+                    x1: xMedian,
+                    y0: yMin,
+                    y1: yMedian,
+                    fillcolor: "rgba(245, 158, 11, 0.16)",
+                    line: { width: 0 }
+                },
+                {
+                    type: "rect",
+                    x0: xMedian,
+                    x1: xMax,
+                    y0: yMedian,
+                    y1: yMax,
+                    fillcolor: "rgba(245, 158, 11, 0.16)",
+                    line: { width: 0 }
+                },
+                {
+                    type: "line",
+                    x0: xMedian,
+                    x1: xMedian,
+                    y0: yMin,
+                    y1: yMax,
+                    line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
+                },
+                {
+                    type: "line",
+                    x0: xMin,
+                    x1: xMax,
+                    y0: yMedian,
+                    y1: yMedian,
+                    line: { color: "rgba(148,163,184,0.6)", dash: "dot" }
+                }
+            ];
+
+            const annotations = [
+                {
+                    x: xMin + (xMedian - xMin) * 0.5,
+                    y: yMedian + (yMax - yMedian) * 0.5,
+                    text: "Riesgo alto",
+                    showarrow: false,
+                    font: { color: "#FBCFE8", size: 12 }
+                },
+                {
+                    x: xMedian + (xMax - xMedian) * 0.5,
+                    y: yMin + (yMedian - yMin) * 0.5,
+                    text: "Riesgo bajo",
+                    showarrow: false,
+                    font: { color: "#D1FAE5", size: 12 }
+                },
+                {
+                    x: xMin + (xMedian - xMin) * 0.5,
+                    y: yMin + (yMedian - yMin) * 0.5,
+                    text: "Riesgo medio",
+                    showarrow: false,
+                    font: { color: "#FCD34D", size: 12 }
+                },
+                {
+                    x: xMedian + (xMax - xMedian) * 0.5,
+                    y: yMedian + (yMax - yMedian) * 0.5,
+                    text: "Riesgo medio",
+                    showarrow: false,
+                    font: { color: "#FCD34D", size: 12 }
+                }
+            ];
+
+            const pointColors = points.map((p) => {
+                const lowPop = p.x <= xMedian;
+                const highCases = p.y > yMedian;
+                if (lowPop && highCases) return "#F472B6";
+                if (!lowPop && !highCases) return "#34D399";
+                return "#F59E0B";
+            });
+
+            Plotly.react("chartPop", [
+                {
+                    x: xValues,
+                    y: yValues,
+                    text: points.map((p) => p.name),
+                    mode: "markers",
+                    type: "scatter",
+                    marker: {
+                        size: 12,
+                        color: pointColors,
+                        line: { color: "#0B1020", width: 1 }
+                    },
+                    hovertemplate: "%{text}<br>Poblacion %{x}<br>Casos %{y}<extra></extra>"
+                }
+            ], {
+                ...baseLayout(""),
+                xaxis: { title: "Poblacion", gridcolor: "rgba(148,163,184,0.15)" },
+                yaxis: { title: "Casos (eje invertido)", gridcolor: "rgba(148,163,184,0.15)", autorange: "reversed" },
+                shapes,
+                annotations
+            }, { displayModeBar: false, responsive: true });
         }
-      }).addTo(mapInstance);
 
-      const regionRates = new Map();
-      agg.deptList.forEach((dept) => {
-        if (!dept.region || dept.rate === null) return;
-        const key = dept.region;
-        if (!regionRates.has(key)) regionRates.set(key, []);
-        regionRates.get(key).push(dept.rate);
-      });
+        function renderGeoTable(agg) {
+            let sorted = [...agg.deptList].sort((a, b) => b.total - a.total);
+            if (state.orderY === "asc") sorted = sorted.slice().reverse();
+            sorted = sorted.slice(0, state.topN);
+            const data = sorted.map((d) => ({
+                departamento: d.name,
+                total: d.total,
+                rate: d.rate
+            }));
+            Plotly.react("chartGeoTable", [
+                {
+                    type: "table",
+                    header: {
+                        values: ["Departamento", "Total", "Tasa 100k"],
+                        fill: { color: "rgba(15, 23, 42, 0.92)" },
+                        font: { color: "#E5E7EB" },
+                        align: "left"
+                    },
+                    cells: {
+                        values: [
+                            data.map((d) => d.departamento),
+                            data.map((d) => formatNumber(d.total)),
+                            data.map((d) => formatRate(d.rate))
+                        ],
+                        fill: {
+                            color: [
+                                "rgba(17, 24, 39, 0.88)",
+                                "rgba(30, 41, 59, 0.78)",
+                                "rgba(17, 24, 39, 0.88)"
+                            ]
+                        },
+                        font: { color: "#E5E7EB" },
+                        align: "left"
+                    }
+                }
+            ], {
+                margin: { t: 10, l: 10, r: 10, b: 10 },
+                paper_bgcolor: "rgba(0,0,0,0)",
+                plot_bgcolor: "rgba(0,0,0,0)"
+            }, { displayModeBar: false, responsive: true });
+        }
 
-      const regionMedians = Array.from(regionRates.entries())
-        .map(([region, values]) => ({ region, median: median(values) }))
-        .sort((a, b) => a.region.localeCompare(b.region));
+        function getRegionPalette(region) {
+            const key = normalizeKey(region);
+            if (key.includes("CARIBE")) return { hue: 0, border: "#F43F5E" };
+            if (key.includes("ANDINA")) return { hue: 210, border: "#38BDF8" };
+            if (key.includes("PACIF")) return { hue: 170, border: "#34D399" };
+            if (key.includes("ORINOQ")) return { hue: 110, border: "#A3E635" };
+            if (key.includes("AMAZ")) return { hue: 270, border: "#C084FC" };
+            if (key.includes("INSUL")) return { hue: 35, border: "#FBBF24" };
+            return { hue: 200, border: "#94A3B8" };
+        }
 
-      if (!mapInstance._legendControl) {
-        mapInstance._legendControl = L.control({ position: "topright" });
-        mapInstance._legendControl.onAdd = () => {
-          const div = L.DomUtil.create("div", "map-legend");
-          div.innerHTML = "<strong>Regiones y mediana (tasa 100k)</strong>";
-          return div;
-        };
-        mapInstance._legendControl.addTo(mapInstance);
-      }
+        function colorByRate(region, rate, maxRate) {
+            const palette = getRegionPalette(region);
+            const norm = maxRate ? Math.min(rate / maxRate, 1) : 0;
+            const saturation = 35 + norm * 55;
+            const lightness = 35 + (1 - norm) * 22;
+            return `hsl(${palette.hue}, ${saturation}%, ${lightness}%)`;
+        }
 
-      const legendDiv = mapInstance._legendControl.getContainer();
-      legendDiv.innerHTML = "<strong>Regiones y mediana (tasa 100k)</strong>" +
-        regionMedians.map((item) => {
-          const palette = getRegionPalette(item.region);
-          const swatch = `style=\"background:${palette.border}\"`;
-          return `
+        function initMap() {
+            if (mapInstance) return;
+            mapInstance = L.map("mapDept", { zoomControl: false, preferCanvas: true });
+            mapInstance.setView([4.5, -74], 5);
+            L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+                attribution: "&copy; OpenStreetMap &copy; CARTO",
+                maxZoom: 10,
+                minZoom: 4
+            }).addTo(mapInstance);
+            L.control.zoom({ position: "bottomright" }).addTo(mapInstance);
+        }
+
+        function renderMap(agg) {
+            if (!geojsonData) return;
+            initMap();
+
+            const rateByCode = new Map();
+            const rateByName = new Map();
+            const regionByName = new Map();
+            const regionByCode = new Map();
+            const rates = [];
+
+            agg.deptList.forEach((dept) => {
+                const rate = dept.rate || 0;
+                rates.push(rate);
+                const code = formatDeptCode(dept.code);
+                if (code) rateByCode.set(code, rate);
+                if (dept.name) {
+                    rateByName.set(normalizeKey(dept.name), rate);
+                    if (dept.region) regionByName.set(normalizeKey(dept.name), dept.region);
+                }
+                if (code && dept.region) regionByCode.set(code, dept.region);
+            });
+
+            const maxRate = Math.max(...rates, 0);
+
+            if (mapLayer) {
+                mapLayer.remove();
+            }
+
+            mapLayer = L.geoJSON(geojsonData, {
+                style: (feature) => {
+                    const props = feature.properties || {};
+                    const code = props.dpto_ccdgo;
+                    const name = props.dpto_cnmbr;
+                    const rate = rateByCode.get(code) ?? rateByName.get(normalizeKey(name)) ?? 0;
+                    const region = regionByCode.get(code) || regionByName.get(normalizeKey(name)) || "";
+                    const palette = getRegionPalette(region);
+                    return {
+                        color: palette.border,
+                        weight: 2.6,
+                        opacity: 0.9,
+                        fillColor: colorByRate(region, rate, maxRate),
+                        fillOpacity: 0.75
+                    };
+                },
+                onEachFeature: (feature, layer) => {
+                    const props = feature.properties || {};
+                    const name = props.dpto_cnmbr || "Departamento";
+                    const code = props.dpto_ccdgo;
+                    const rate = rateByCode.get(code) ?? rateByName.get(normalizeKey(name)) ?? 0;
+                    const region = regionByCode.get(code) || regionByName.get(normalizeKey(name)) || "Sin region";
+                    layer.bindTooltip(
+                        `<strong>${name}</strong><br>Region: ${region}<br>Tasa 100k: ${formatRate(rate)}`,
+                        { sticky: true }
+                    );
+                }
+            }).addTo(mapInstance);
+
+            const mapStatus = document.getElementById("mapStatus");
+            if (mapStatus) mapStatus.textContent = "";
+
+            const regionRates = new Map();
+            agg.deptList.forEach((dept) => {
+                if (!dept.region || dept.rate === null) return;
+                const key = dept.region;
+                if (!regionRates.has(key)) regionRates.set(key, []);
+                regionRates.get(key).push(dept.rate);
+            });
+
+            const regionMedians = Array.from(regionRates.entries())
+                .map(([region, values]) => ({ region, median: median(values) }))
+                .sort((a, b) => a.region.localeCompare(b.region));
+
+            if (!mapInstance._legendControl) {
+                mapInstance._legendControl = L.control({ position: "topright" });
+                mapInstance._legendControl.onAdd = () => {
+                    const div = L.DomUtil.create("div", "map-legend");
+                    div.innerHTML = "<strong>Regiones y mediana (tasa 100k)</strong>";
+                    return div;
+                };
+                mapInstance._legendControl.addTo(mapInstance);
+            }
+
+            const legendDiv = mapInstance._legendControl.getContainer();
+            legendDiv.innerHTML = "<strong>Regiones y mediana (tasa 100k)</strong>" +
+                regionMedians.map((item) => {
+                    const palette = getRegionPalette(item.region);
+                    const swatch = `style=\"background:${palette.border}\"`;
+                    return `
             <div class=\"legend-row\">
               <span><span class=\"swatch\" ${swatch}></span>${item.region}</span>
               <span>${formatRate(item.median)}</span>
             </div>
           `;
-        }).join("");
+                }).join("");
 
-      mapInstance.fitBounds(mapLayer.getBounds(), { padding: [12, 12] });
-    }
-
-    function renderRiskTable(agg) {
-      const points = agg.deptList
-        .filter((d) => d.pop && Number.isFinite(d.total))
-        .map((d) => ({ name: d.name, pop: d.pop, cases: d.total }));
-      if (!points.length) {
-        els.riskTable.innerHTML = "<div class=\"notice\">No hay datos suficientes para clasificar riesgo.</div>";
-        return;
-      }
-      const popMedian = median(points.map((p) => p.pop));
-      const casesMedian = median(points.map((p) => p.cases));
-      const high = [];
-      const low = [];
-      const medium = [];
-
-      points.forEach((p) => {
-        const lowPop = p.pop <= popMedian;
-        const highCases = p.cases > casesMedian;
-        if (lowPop && highCases) {
-          high.push(p.name);
-        } else if (!lowPop && !highCases) {
-          low.push(p.name);
-        } else {
-          medium.push(p.name);
+            mapInstance.fitBounds(mapLayer.getBounds(), { padding: [12, 12] });
+            setTimeout(() => mapInstance.invalidateSize(), 200);
         }
-      });
 
-      els.riskTable.innerHTML = `
+        function renderRiskTable(agg) {
+            const points = agg.deptList
+                .filter((d) => d.pop && Number.isFinite(d.total))
+                .map((d) => ({ name: d.name, pop: d.pop, cases: d.total }));
+            if (!points.length) {
+                els.riskTable.innerHTML = "<div class=\"notice\">No hay datos suficientes para clasificar riesgo.</div>";
+                return;
+            }
+            const popMedian = median(points.map((p) => p.pop));
+            const casesMedian = median(points.map((p) => p.cases));
+            const high = [];
+            const low = [];
+            const medium = [];
+
+            points.forEach((p) => {
+                const lowPop = p.pop <= popMedian;
+                const highCases = p.cases > casesMedian;
+                if (lowPop && highCases) {
+                    high.push(p.name);
+                } else if (!lowPop && !highCases) {
+                    low.push(p.name);
+                } else {
+                    medium.push(p.name);
+                }
+            });
+
+            els.riskTable.innerHTML = `
         <table class="meta-table">
           <thead>
             <tr>
@@ -2083,123 +2140,123 @@
           </tbody>
         </table>
       `;
-    }
+        }
 
-    function renderTable(agg) {
-      let rows = [];
-      if (state.tableDimension === "departamento") {
-        rows = agg.deptList.map((d) => ({
-          departamento: d.name,
-          municipio: "-",
-          total: d.total,
-          rate: d.rate,
-          poblacion: d.pop,
-          pib: d.pib
-        }));
-      } else {
-        rows = agg.munList.map((m) => ({
-          departamento: m.departamento,
-          municipio: m.municipio,
-          total: m.total,
-          rate: null,
-          poblacion: null,
-          pib: null
-        }));
-      }
-      rows.sort((a, b) => b.total - a.total);
-      rows = rows.slice(0, CONFIG.maxTableRows);
+        function renderTable(agg) {
+            let rows = [];
+            if (state.tableDimension === "departamento") {
+                rows = agg.deptList.map((d) => ({
+                    departamento: d.name,
+                    municipio: "-",
+                    total: d.total,
+                    rate: d.rate,
+                    poblacion: d.pop,
+                    pib: d.pib
+                }));
+            } else {
+                rows = agg.munList.map((m) => ({
+                    departamento: m.departamento,
+                    municipio: m.municipio,
+                    total: m.total,
+                    rate: null,
+                    poblacion: null,
+                    pib: null
+                }));
+            }
+            rows.sort((a, b) => b.total - a.total);
+            rows = rows.slice(0, CONFIG.maxTableRows);
 
-      const columns = [
-        { title: "Departamento", field: "departamento", headerFilter: false },
-        { title: "Municipio", field: "municipio", headerFilter: false },
-        { title: "Total", field: "total", formatter: (cell) => formatNumber(cell.getValue()) },
-        { title: "Tasa 100k", field: "rate", formatter: (cell) => formatRate(cell.getValue()) },
-        { title: "Poblacion", field: "poblacion", formatter: (cell) => formatNumber(cell.getValue()) },
-        { title: "PIB 2021", field: "pib", formatter: (cell) => formatNumber(cell.getValue()) }
-      ];
+            const columns = [
+                { title: "Departamento", field: "departamento", headerFilter: false },
+                { title: "Municipio", field: "municipio", headerFilter: false },
+                { title: "Total", field: "total", formatter: (cell) => formatNumber(cell.getValue()) },
+                { title: "Tasa 100k", field: "rate", formatter: (cell) => formatRate(cell.getValue()) },
+                { title: "Poblacion", field: "poblacion", formatter: (cell) => formatNumber(cell.getValue()) },
+                { title: "PIB 2021", field: "pib", formatter: (cell) => formatNumber(cell.getValue()) }
+            ];
 
-      if (!table) {
-        table = new Tabulator("#detailTable", {
-          data: rows,
-          columns,
-          layout: "fitColumns",
-          pagination: "local",
-          paginationSize: 12,
-          selectable: false
-        });
-      } else {
-        table.setColumns(columns);
-        table.replaceData(rows);
-      }
-    }
+            if (!table) {
+                table = new Tabulator("#detailTable", {
+                    data: rows,
+                    columns,
+                    layout: "fitColumns",
+                    pagination: "local",
+                    paginationSize: 12,
+                    selectable: false
+                });
+            } else {
+                table.setColumns(columns);
+                table.replaceData(rows);
+            }
+        }
 
-    function renderAnalysis(metrics, agg) {
-      const deptTop = metrics.topDept ? metrics.topDept.name : "-";
-      const munTop = metrics.topMun ? metrics.topMun.municipio : "-";
-      els.analysisSummary.innerHTML = `
+        function renderAnalysis(metrics, agg) {
+            const deptTop = metrics.topDept ? metrics.topDept.name : "-";
+            const munTop = metrics.topMun ? metrics.topMun.municipio : "-";
+            els.analysisSummary.innerHTML = `
         <h3>Panorama general</h3>
         <p>En el filtro actual se observan ${formatNumber(metrics.total)} intentos en 2021. El promedio semanal es ${formatRate(metrics.avgWeekly)}. El municipio con mayor acumulado es ${munTop} y el departamento lider es ${deptTop}.</p>
       `;
-      els.analysisTemporal.innerHTML = `
+            els.analysisTemporal.innerHTML = `
         <h3>Comportamiento semanal</h3>
         <p>La serie semanal destaca variaciones en el tiempo. El rango activo cubre semanas ${state.weekMin} a ${state.weekMax}. Revisar picos considerando contexto local y posibles cambios de reporte.</p>
       `;
-      els.analysisTerritorial.innerHTML = `
+            els.analysisTerritorial.innerHTML = `
         <h3>Concentracion territorial</h3>
         <p>El top 5 de departamentos aporta aproximadamente ${formatRate(metrics.top5Share)}% del total filtrado. Esto sugiere concentracion territorial que debe revisarse junto con poblacion y estructura urbana.</p>
       `;
-      els.analysisPopulation.innerHTML = `
+            els.analysisPopulation.innerHTML = `
         <h3>Relacion con poblacion</h3>
         <p>La tasa nacional estimada es ${formatRate(metrics.rateNational)} por 100k habitantes. Compare tasas para evitar conclusiones basadas solo en volumen absoluto.</p>
       `;
-      els.analysisPib.innerHTML = `
+            els.analysisPib.innerHTML = `
         <h3>Relacion con PIB</h3>
         <p>La dispersion entre PIB y intentos muestra asociaciones, no causalidad. Use la nube de puntos para detectar outliers y departamentos con comportamiento distinto al esperado.</p>
       `;
-      els.analysisLimits.innerHTML = `
+            els.analysisLimits.innerHTML = `
         <h3>Limitaciones</h3>
         <p>Los intentos estan a nivel municipio-semana, mientras PIB y poblacion son departamentales. Las comparaciones cruzadas son aproximadas y pueden ocultar heterogeneidad interna. La region se toma de la tabla de poblacion por departamento.</p>
       `;
-    }
-
-    function renderSources(mapping) {
-      const sources = [
-        {
-          nombre: "Intentos de suicidio",
-          archivo: CONFIG.files.suicidios,
-          descripcion: "Registro de intentos por municipio y semana en 2021.",
-          cobertura: "Colombia",
-          temporal: "2021",
-          granularidad: "Municipio - Semana",
-          variables: Object.values(mapping.suicidios).filter(Boolean).join(", "),
-          transformaciones: "Normalizacion de columnas, conversion numerica, agregacion.",
-          observaciones: "Se usan conteos reportados."
-        },
-        {
-          nombre: "PIB departamental",
-          archivo: CONFIG.files.pib,
-          descripcion: "PIB por departamento con serie historica; se usa columna 2021.",
-          cobertura: "Colombia",
-          temporal: "2021",
-          granularidad: "Departamento",
-          variables: Object.values(mapping.pib).filter(Boolean).join(", "),
-          transformaciones: "Seleccion de 2021 y conversion decimal.",
-          observaciones: "Se excluye fila nacional."
-        },
-        {
-          nombre: "Poblacion departamental",
-          archivo: CONFIG.files.poblacion,
-          descripcion: "Poblacion total departamental en 2021.",
-          cobertura: "Colombia",
-          temporal: "2021",
-          granularidad: "Departamento",
-          variables: Object.values(mapping.poblacion).filter(Boolean).join(", "),
-          transformaciones: "Filtrado a Total y anio 2021.",
-          observaciones: "Se usa para tasas por 100k."
         }
-      ];
 
-      els.sourcesCards.innerHTML = sources.map((s) => `
+        function renderSources(mapping) {
+            const sources = [
+                {
+                    nombre: "Intentos de suicidio",
+                    archivo: CONFIG.files.suicidios,
+                    descripcion: "Registro de intentos por municipio y semana en 2021.",
+                    cobertura: "Colombia",
+                    temporal: "2021",
+                    granularidad: "Municipio - Semana",
+                    variables: Object.values(mapping.suicidios).filter(Boolean).join(", "),
+                    transformaciones: "Normalizacion de columnas, conversion numerica, agregacion.",
+                    observaciones: "Se usan conteos reportados."
+                },
+                {
+                    nombre: "PIB departamental",
+                    archivo: CONFIG.files.pib,
+                    descripcion: "PIB por departamento con serie historica; se usa columna 2021.",
+                    cobertura: "Colombia",
+                    temporal: "2021",
+                    granularidad: "Departamento",
+                    variables: Object.values(mapping.pib).filter(Boolean).join(", "),
+                    transformaciones: "Seleccion de 2021 y conversion decimal.",
+                    observaciones: "Se excluye fila nacional."
+                },
+                {
+                    nombre: "Poblacion departamental",
+                    archivo: CONFIG.files.poblacion,
+                    descripcion: "Poblacion total departamental en 2021.",
+                    cobertura: "Colombia",
+                    temporal: "2021",
+                    granularidad: "Departamento",
+                    variables: Object.values(mapping.poblacion).filter(Boolean).join(", "),
+                    transformaciones: "Filtrado a Total y anio 2021.",
+                    observaciones: "Se usa para tasas por 100k."
+                }
+            ];
+
+            els.sourcesCards.innerHTML = sources.map((s) => `
         <div class="source-card">
           <h3>${s.nombre}</h3>
           <p><strong>Archivo:</strong> ${s.archivo}</p>
@@ -2209,7 +2266,7 @@
         </div>
       `).join("");
 
-      els.sourcesTable.innerHTML = `
+            els.sourcesTable.innerHTML = `
         <thead>
           <tr>
             <th>Fuente</th>
@@ -2240,56 +2297,59 @@
         </tbody>
       `;
 
-      els.methodologyNotes.textContent =
-        "Los tres CSV se relacionan por departamento. Los intentos se agregan desde municipio-semana a departamento-semana, " +
-        "y luego se cruzan con PIB y poblacion departamental. Se calculan tasas por 100k y participaciones. " +
-        "Las diferencias de granularidad limitan inferencias causales y exigen lectura prudente.";
-    }
+            els.methodologyNotes.textContent =
+                "Los tres CSV se relacionan por departamento. Los intentos se agregan desde municipio-semana a departamento-semana, " +
+                "y luego se cruzan con PIB y poblacion departamental. Se calculan tasas por 100k y participaciones. " +
+                "Las diferencias de granularidad limitan inferencias causales y exigen lectura prudente.";
+        }
 
-    function renderAll() {
-      clearError();
-      const filtered = filterRows();
-      const agg = aggregate(filtered);
-      const metrics = renderKpis(agg);
-      renderTrend(agg);
-      renderDeptRanking(agg);
-      renderMunRanking(agg);
-      renderHeatmap(agg);
-      renderPibScatter(agg);
-      renderPopRiskScatter(agg);
-      renderMap(agg);
-      renderGeoTable(agg);
-      renderRiskTable(agg);
-      renderTable(agg);
-      renderAnalysis(metrics, agg);
-    }
+        function renderAll() {
+            clearError();
+            const filtered = filterRows();
+            const agg = aggregate(filtered);
+            const metrics = renderKpis(agg);
+            renderTrend(agg);
+            renderDeptRanking(agg);
+            renderMunRanking(agg);
+            renderHeatmap(agg);
+            renderPibScatter(agg);
+            renderPopRiskScatter(agg);
+            renderMap(agg);
+            renderGeoTable(agg);
+            renderRiskTable(agg);
+            renderTable(agg);
+            renderAnalysis(metrics, agg);
+        }
 
-    async function init() {
-      setLoading(true);
-      try {
-        const [suicidiosResult, pibResult, popResult, geojson] = await Promise.all([
-          loadCsv(CONFIG.files.suicidios),
-          loadCsv(CONFIG.files.pib),
-          loadCsv(CONFIG.files.poblacion),
-          fetch(CONFIG.files.geojson).then((res) => res.json())
-        ]);
-        const mapping = buildMappings(suicidiosResult, pibResult, popResult);
-        normalizeData(suicidiosResult, pibResult, popResult, mapping);
-        geojsonData = geojson;
-        updateDepartmentOptions();
-        updateMunicipioOptions();
-        syncFilterInputs();
-        updateStatus(rawSuicidios.length);
-        renderSources(mapping);
-        renderAll();
-      } catch (error) {
-        showError(error.message || "Error al cargar CSV.");
-      } finally {
-        setLoading(false);
-      }
-    }
+        async function init() {
+            setLoading(true);
+            try {
+                const [suicidiosResult, pibResult, popResult, geojson] = await Promise.all([
+                    loadCsv(CONFIG.files.suicidios),
+                    loadCsv(CONFIG.files.pib),
+                    loadCsv(CONFIG.files.poblacion),
+                    fetch(CONFIG.files.geojson).then((res) => res.json())
+                ]);
+                const mapping = buildMappings(suicidiosResult, pibResult, popResult);
+                normalizeData(suicidiosResult, pibResult, popResult, mapping);
+                geojsonData = geojson;
+                updateDepartmentOptions();
+                updateMunicipioOptions();
+                syncFilterInputs();
+                updateStatus(rawSuicidios.length);
+                renderSources(mapping);
+                renderAll();
+            } catch (error) {
+                showError(error.message || "Error al cargar CSV.");
+                const mapStatus = document.getElementById("mapStatus");
+                if (mapStatus) mapStatus.textContent = "No se pudo cargar el mapa.";
+            } finally {
+                setLoading(false);
+            }
+        }
 
-    init();
-  </script>
+        init();
+    </script>
 </body>
+
 </html>
