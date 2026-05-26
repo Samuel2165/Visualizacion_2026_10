@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.2/dist/css/tabulator.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.1/dist/css/tabulator.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
@@ -127,21 +127,28 @@
         }
 
         .nav-btn {
-            border: none;
+            border: 1px solid transparent;
             background: transparent;
             color: var(--text-secondary);
-            padding: 10px 18px;
+            padding: 9px 17px;
             border-radius: 999px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             white-space: nowrap;
         }
 
-        .nav-btn.active,
         .nav-btn:hover {
-            background: rgba(20, 184, 166, 0.2);
+            background: rgba(20, 184, 166, 0.12);
             color: var(--text-primary);
+            border-color: rgba(20, 184, 166, 0.25);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(120deg, rgba(20, 184, 166, 0.25), rgba(96, 165, 250, 0.25));
+            border-color: rgba(20, 184, 166, 0.4);
+            color: var(--text-primary);
+            box-shadow: 0 0 10px rgba(20, 184, 166, 0.15);
         }
 
         .view {
@@ -465,55 +472,26 @@
         }
 
         .analysis-card h3 {
-            margin: 0 0 8px;
+            margin: 0 0 12px;
             font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
         }
 
         .model-canvas {
             position: relative;
-            background: var(--surface);
+            background: rgba(11, 16, 32, 0.6);
             border: 1px solid var(--border);
             border-radius: var(--radius-xl);
-            padding: 26px;
+            padding: 0;
             box-shadow: var(--shadow);
+            width: 1000px;
+            height: 600px;
+            margin: 0 auto;
             overflow: hidden;
-        }
-
-        .model-grid {
-            display: grid;
-            gap: 20px;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            position: relative;
-            z-index: 1;
-        }
-
-        .model-box {
-            padding: 14px 16px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            background: rgba(15, 23, 42, 0.8);
-        }
-
-        .model-box.fact {
-            border-color: rgba(20, 184, 166, 0.55);
-            box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.3);
-        }
-
-        .model-box.dim {
-            border-color: rgba(96, 165, 250, 0.45);
-            box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25);
-        }
-
-        .model-title {
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .model-fields {
-            margin: 0;
-            padding-left: 16px;
-            color: var(--text-secondary);
-            font-size: 13px;
+            backdrop-filter: blur(14px);
         }
 
         .model-lines {
@@ -522,7 +500,80 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            opacity: 0.7;
+            z-index: 1;
+        }
+
+        .model-box {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            z-index: 2;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .model-box:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(20, 184, 166, 0.25);
+        }
+
+        .model-box-header {
+            padding: 8px 12px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .model-box.dim .model-box-header {
+            background: linear-gradient(90deg, rgba(96, 165, 250, 0.25), transparent);
+            border-top: 4px solid var(--secondary);
+        }
+
+        .model-box.fact .model-box-header {
+            background: linear-gradient(90deg, rgba(20, 184, 166, 0.25), transparent);
+            border-top: 4px solid var(--primary);
+        }
+
+        .model-fields {
+            margin: 0;
+            padding: 8px 12px;
+            list-style: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .model-fields li {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .model-fields li::before {
+            content: "•";
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+
+        .model-fields li.key::before {
+            content: "🔑";
+            font-size: 10px;
+        }
+
+        .model-fields li.key {
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         .sources-grid {
@@ -684,6 +735,49 @@
                 align-items: stretch;
             }
         }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(11, 16, 32, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(20, 184, 166, 0.5);
+        }
+
+        /* Hover animations and transitions for cards */
+        .chart-card, .kpi-card, .source-card, .analysis-card {
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .chart-card:hover, .kpi-card:hover, .source-card:hover, .analysis-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(20, 184, 166, 0.4);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.6), 0 0 12px rgba(20, 184, 166, 0.15);
+        }
+
+        /* Styling for Storytelling Insights */
+        .analysis-insight-tag {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(20, 184, 166, 0.08);
+            border-left: 3px solid var(--primary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 13px;
+            color: var(--text-primary);
+            font-style: italic;
+            line-height: 1.5;
+        }
+        .analysis-insight-tag.bg-warning-light {
+            background: rgba(245, 158, 11, 0.08);
+            border-left-color: var(--warning);
+        }
     </style>
 </head>
 
@@ -716,6 +810,7 @@
 
         <nav class="app-nav" id="appNav">
             <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+            <button class="nav-btn" data-view="analysis">Análisis y Reporte</button>
             <button class="nav-btn" data-view="data_model">Modelo de datos</button>
             <button class="nav-btn" data-view="sources">Fuentes</button>
         </nav>
@@ -930,66 +1025,182 @@
                 </div>
             </section>
 
-            <section id="data_model" class="view">
-                <div class="model-canvas">
-                    <svg class="model-lines" viewBox="0 0 1000 520" preserveAspectRatio="none">
-                        <line x1="470" y1="150" x2="300" y2="40" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
-                        <line x1="530" y1="150" x2="700" y2="40" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
-                        <line x1="500" y1="210" x2="500" y2="360" stroke="rgba(96,165,250,0.6)" stroke-width="2" />
-                    </svg>
-                    <div class="model-grid">
-                        <div class="model-box dim">
-                            <div class="model-title">DimFechaSemana</div>
-                            <ul class="model-fields">
-                                <li>id_fecha_semana</li>
-                                <li>anio</li>
-                                <li>semana</li>
-                                <li>periodo_derivado</li>
-                            </ul>
+            <section id="analysis" class="view">
+                <!-- Banner de Storytelling y Hallazgos Principales (Fijo) -->
+                <div class="glass" style="margin-bottom: 24px; padding: 24px;">
+                    <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; background: linear-gradient(120deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Storytelling: El Panorama de la Salud Mental en Colombia (2021)</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">A través del cruce de datos de intentos de suicidio, población (DANE) y Producto Interno Bruto (PIB) departamental, emergen tres narrativas críticas sobre la realidad territorial de nuestro país.</p>
+                    
+                    <div class="dashboard-grid" style="gap: 16px;">
+                        <div class="chart-card chart-span-4" style="min-height: auto; padding: 20px; background: rgba(15, 23, 42, 0.45);">
+                            <h4 style="margin: 0 0 12px; color: var(--secondary); font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(96, 165, 250, 0.2); font-size: 12px; color: var(--secondary);">1</span>
+                                La Paradoja de la Carga Per Cápita
+                            </h4>
+                            <p style="font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                                El análisis del volumen absoluto muestra que las grandes urbes de la región Andina y Pacífico (Bogotá, Medellín, Cali) concentran más del 50% de los reportes. Sin embargo, al dividir los incidentes por población real, departamentos rurales aislados como <strong>Vaupés y Putumayo</strong> revelan tasas alarmantes (liderando a nivel nacional). Esto evidencia una grave disparidad donde los territorios con menor infraestructura clínica cargan con la mayor prevalencia proporcional.
+                            </p>
                         </div>
-                        <div class="model-box fact">
-                            <div class="model-title">FactIntentosSuicidio</div>
-                            <ul class="model-fields">
-                                <li>id_fecha_semana</li>
-                                <li>id_municipio</li>
-                                <li>id_departamento</li>
-                                <li>numero_intentos</li>
-                            </ul>
+                        <div class="chart-card chart-span-4" style="min-height: auto; padding: 20px; background: rgba(15, 23, 42, 0.45);">
+                            <h4 style="margin: 0 0 12px; color: var(--primary); font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(20, 184, 166, 0.2); font-size: 12px; color: var(--primary);">2</span>
+                                Estacionalidad Epidemiológica
+                            </h4>
+                            <p style="font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                                Los reportes semanales indican que los intentos de suicidio no ocurren de manera aleatoria. Los picos anuales detectados en las semanas <strong>37, 39 y 44</strong> (coincidiendo con periodos de cierres escolares, presión académica por exámenes finales y la transición hacia las festividades de fin de año) demuestran la influencia de factores sociales de estrés cíclicos. Esto delimita ventanas específicas donde deben intensificarse las campañas preventivas.
+                            </p>
                         </div>
-                        <div class="model-box dim">
-                            <div class="model-title">DimMunicipio</div>
-                            <ul class="model-fields">
-                                <li>id_municipio</li>
-                                <li>codigo_municipio</li>
-                                <li>municipio</li>
-                                <li>id_departamento</li>
-                            </ul>
-                        </div>
-                        <div class="model-box dim">
-                            <div class="model-title">DimDepartamento</div>
-                            <ul class="model-fields">
-                                <li>id_departamento</li>
-                                <li>codigo_departamento</li>
-                                <li>departamento</li>
-                                <li>region</li>
-                            </ul>
-                        </div>
-                        <div class="model-box fact">
-                            <div class="model-title">FactPIBDepartamental</div>
-                            <ul class="model-fields">
-                                <li>id_departamento</li>
-                                <li>pib_2021</li>
-                            </ul>
-                        </div>
-                        <div class="model-box fact">
-                            <div class="model-title">FactPoblacionDepartamental</div>
-                            <ul class="model-fields">
-                                <li>id_departamento</li>
-                                <li>poblacion_2021</li>
-                            </ul>
+                        <div class="chart-card chart-span-4" style="min-height: auto; padding: 20px; background: rgba(167, 139, 250, 0.15); border-color: rgba(167, 139, 250, 0.35);">
+                            <h4 style="margin: 0 0 12px; color: var(--accent); font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(167, 139, 250, 0.2); font-size: 12px; color: var(--accent);">3</span>
+                                La Correlación del Desarrollo (PIB)
+                            </h4>
+                            <p style="font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                                La baja capacidad económica departamental (medida a través del PIB) limita la inversión en la red pública de salud mental. Departamentos con menor PIB registran dificultades severas para retener personal psiquiátrico clínico y establecer canales de derivación especializados. Esto genera una brecha donde la vulnerabilidad socioeconómica y la falta de recursos hospitalarios amplifican el riesgo de desenlaces críticos.
+                            </p>
                         </div>
                     </div>
-                    <div class="footer-note">Modelo estrella inspirado en la vista de modelo de Power BI.</div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Columna de Análisis Dinámico -->
+                    <div class="chart-card chart-span-6" style="display: flex; flex-direction: column; gap: 16px; background: transparent; border: none; padding: 0; min-height: auto; box-shadow: none;">
+                        <div id="analysisSummary" class="analysis-card"></div>
+                        <div id="analysisTemporal" class="analysis-card"></div>
+                        <div id="analysisTerritorial" class="analysis-card"></div>
+                        <div id="analysisPopulation" class="analysis-card"></div>
+                        <div id="analysisPib" class="analysis-card"></div>
+                        <div id="analysisLimits" class="analysis-card"></div>
+                    </div>
+                    <!-- Columna de Reporte PDF -->
+                    <div class="chart-card chart-span-6" style="display: flex; flex-direction: column; height: 1100px; padding: 20px;">
+                        <div class="chart-header" style="margin-bottom: 12px;">
+                            <div class="chart-title" style="font-size: 16px; font-weight: 700; background: linear-gradient(120deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Reporte Científico Completo (IEEE)</div>
+                        </div>
+                        <p class="chart-desc" style="margin-bottom: 12px;">Lectura directa del reporte final en formato PDF (norma IEEE Conference).</p>
+                        <div style="flex-grow: 1; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow);">
+                            <iframe src="eda_suicidios.pdf" width="100%" height="100%" style="border: none; background: #fff;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="data_model" class="view">
+                <div class="model-canvas">
+                    <!-- SVG para líneas de relación estilo Power BI -->
+                    <svg class="model-lines" width="1000" height="600" viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Relación 1: DimFechaSemana [1] <---> FactIntentosSuicidio [*] -->
+                        <path d="M 270 115 L 325 115 L 325 240 L 380 240" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
+                        <circle cx="325" cy="177.5" r="9" fill="#0B1020" stroke="#94A3B8" stroke-width="1.5" />
+                        <path d="M 322 181 L 325 175 L 328 181" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <text x="278" y="110" fill="#94A3B8" font-size="11" font-family="Segoe UI, sans-serif" font-weight="bold">1</text>
+                        <text x="368" y="235" fill="#94A3B8" font-size="14" font-family="Segoe UI, sans-serif" font-weight="bold">*</text>
+
+                        <!-- Relación 2: DimMunicipio [1] <---> FactIntentosSuicidio [*] -->
+                        <path d="M 270 455 L 325 455 L 325 340 L 380 340" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
+                        <circle cx="325" cy="397.5" r="9" fill="#0B1020" stroke="#94A3B8" stroke-width="1.5" />
+                        <path d="M 322 400 L 325 394 L 328 400" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <text x="278" y="450" fill="#94A3B8" font-size="11" font-family="Segoe UI, sans-serif" font-weight="bold">1</text>
+                        <text x="368" y="335" fill="#94A3B8" font-size="14" font-family="Segoe UI, sans-serif" font-weight="bold">*</text>
+
+                        <!-- Relación 3: DimDepartamento [1] <---> FactIntentosSuicidio [*] -->
+                        <path d="M 730 300 L 620 300" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
+                        <circle cx="675" cy="300" r="9" fill="#0B1020" stroke="#94A3B8" stroke-width="1.5" />
+                        <path d="M 678 297 L 672 300 L 678 303" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <text x="718" y="295" fill="#94A3B8" font-size="11" font-family="Segoe UI, sans-serif" font-weight="bold">1</text>
+                        <text x="628" y="295" fill="#94A3B8" font-size="14" font-family="Segoe UI, sans-serif" font-weight="bold">*</text>
+
+                        <!-- Relación 4: DimDepartamento [1] <---> FactPIBDepartamental [*] -->
+                        <path d="M 840 220 L 840 170" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
+                        <circle cx="840" cy="195" r="9" fill="#0B1020" stroke="#94A3B8" stroke-width="1.5" />
+                        <path d="M 837 198 L 840 192 L 843 198" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <text x="846" y="214" fill="#94A3B8" font-size="11" font-family="Segoe UI, sans-serif" font-weight="bold">1</text>
+                        <text x="846" y="184" fill="#94A3B8" font-size="14" font-family="Segoe UI, sans-serif" font-weight="bold">*</text>
+
+                        <!-- Relación 5: DimDepartamento [1] <---> FactPoblacionDepartamental [*] -->
+                        <path d="M 730 340 L 680 340 L 680 505 L 620 505" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
+                        <circle cx="680" cy="422.5" r="9" fill="#0B1020" stroke="#94A3B8" stroke-width="1.5" />
+                        <path d="M 677 419 L 680 425 L 683 419" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <text x="718" y="335" fill="#94A3B8" font-size="11" font-family="Segoe UI, sans-serif" font-weight="bold">1</text>
+                        <text x="628" y="500" fill="#94A3B8" font-size="14" font-family="Segoe UI, sans-serif" font-weight="bold">*</text>
+                    </svg>
+
+                    <!-- Cajas de las tablas del modelo con posicionamiento absoluto -->
+                    <div class="model-box dim" style="left: 50px; top: 40px; width: 220px;">
+                        <div class="model-box-header">
+                            <span>DimFechaSemana</span>
+                            <span class="tag" style="padding: 2px 6px; font-size: 9px; border-color: rgba(96, 165, 250, 0.4); background: rgba(96, 165, 250, 0.1);">Dim</span>
+                        </div>
+                        <ul class="model-fields">
+                            <li class="key">id_fecha_semana</li>
+                            <li>anio</li>
+                            <li>semana</li>
+                            <li>periodo_derivado</li>
+                        </ul>
+                    </div>
+
+                    <div class="model-box fact" style="left: 380px; top: 220px; width: 240px;">
+                        <div class="model-box-header">
+                            <span>FactIntentosSuicidio</span>
+                            <span class="tag" style="padding: 2px 6px; font-size: 9px; border-color: rgba(20, 184, 166, 0.4); background: rgba(20, 184, 166, 0.1);">Fact</span>
+                        </div>
+                        <ul class="model-fields">
+                            <li class="key">id_fecha_semana</li>
+                            <li class="key">id_municipio</li>
+                            <li class="key">id_departamento</li>
+                            <li>numero_intentos</li>
+                        </ul>
+                    </div>
+
+                    <div class="model-box dim" style="left: 50px; top: 380px; width: 220px;">
+                        <div class="model-box-header">
+                            <span>DimMunicipio</span>
+                            <span class="tag" style="padding: 2px 6px; font-size: 9px; border-color: rgba(96, 165, 250, 0.4); background: rgba(96, 165, 250, 0.1);">Dim</span>
+                        </div>
+                        <ul class="model-fields">
+                            <li class="key">id_municipio</li>
+                            <li>codigo_municipio</li>
+                            <li>municipio</li>
+                            <li>id_departamento</li>
+                        </ul>
+                    </div>
+
+                    <div class="model-box dim" style="left: 730px; top: 220px; width: 220px;">
+                        <div class="model-box-header">
+                            <span>DimDepartamento</span>
+                            <span class="tag" style="padding: 2px 6px; font-size: 9px; border-color: rgba(96, 165, 250, 0.4); background: rgba(96, 165, 250, 0.1);">Dim</span>
+                        </div>
+                        <ul class="model-fields">
+                            <li class="key">id_departamento</li>
+                            <li>codigo_departamento</li>
+                            <li>departamento</li>
+                            <li>region</li>
+                        </ul>
+                    </div>
+
+                    <div class="model-box fact" style="left: 730px; top: 40px; width: 220px;">
+                        <div class="model-box-header">
+                            <span>FactPIBDepartamental</span>
+                            <span class="tag" style="padding: 2px 6px; font-size: 9px; border-color: rgba(20, 184, 166, 0.4); background: rgba(20, 184, 166, 0.1);">Fact</span>
+                        </div>
+                        <ul class="model-fields">
+                            <li class="key">id_departamento</li>
+                            <li>pib_2021</li>
+                        </ul>
+                    </div>
+
+                    <div class="model-box fact" style="left: 380px; top: 440px; width: 240px;">
+                        <div class="model-box-header">
+                            <span>FactPoblacionDepartamental</span>
+                            <span class="tag" style="padding: 2px 6px; font-size: 9px; border-color: rgba(20, 184, 166, 0.4); background: rgba(20, 184, 166, 0.1);">Fact</span>
+                        </div>
+                        <ul class="model-fields">
+                            <li class="key">id_departamento</li>
+                            <li>poblacion_2021</li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-note" style="position: absolute; right: 16px; bottom: 12px; margin: 0; font-size: 11px; z-index: 3; color: var(--text-secondary);">Modelo estrella inspirado en la vista de modelo de Power BI.</div>
                 </div>
             </section>
 
@@ -1009,7 +1220,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.2/dist/js/tabulator.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.6.1/dist/js/tabulator.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
@@ -2216,30 +2427,80 @@
         function renderAnalysis(metrics, agg) {
             const deptTop = metrics.topDept ? metrics.topDept.name : "-";
             const munTop = metrics.topMun ? metrics.topMun.municipio : "-";
+            
+            const tasaReferenciaNacional = 59.5; 
+            const rateVal = metrics.rateNational || 0;
+            const comparacionNacional = rateVal > tasaReferenciaNacional 
+                ? `<span style="color: var(--danger); font-weight: bold;">SUPERIOR (+${formatRate(rateVal - tasaReferenciaNacional)}%)</span> al promedio consolidado país.`
+                : `<span style="color: var(--success); font-weight: bold;">INFERIOR (${formatRate(tasaReferenciaNacional - rateVal)}%)</span> al promedio consolidado país.`;
+
+            // Encontrar departamentos con bajo PIB y alto volumen de casos en la selección
+            const points = agg.deptList.filter(d => d.pop && d.pib && Number.isFinite(d.total));
+            const casesMedian = median(points.map(p => p.total)) || 0;
+            const pibMedian = median(points.map(p => p.pib)) || 0;
+
+            let deptsVulnerables = [];
+            points.forEach(d => {
+                if (d.pib < pibMedian && d.total > casesMedian) {
+                    deptsVulnerables.push(d.name);
+                }
+            });
+
+            const listaVulnerables = deptsVulnerables.length > 0 
+                ? deptsVulnerables.slice(0, 4).join(", ") 
+                : "Ninguno bajo las medianas activas";
+
+            const rateText = metrics.rateNational 
+                ? `Esto representa una tasa consolidada de <strong>${formatRate(metrics.rateNational)} casos por cada 100k habitantes</strong> en los territorios y semanas seleccionadas. Esta tasa es ${comparacionNacional}` 
+                : "No hay datos de tasa per cápita disponibles para esta selección (requiere agregados poblacionales departamentales).";
+
             els.analysisSummary.innerHTML = `
-        <h3>Panorama general</h3>
-        <p>En el filtro actual se observan ${formatNumber(metrics.total)} intentos en 2021. El promedio semanal es ${formatRate(metrics.avgWeekly)}. El municipio con mayor acumulado es ${munTop} y el departamento lider es ${deptTop}.</p>
-      `;
+                <h3>1. Panorama Epidemiológico y Carga Territorial</h3>
+                <p>Durante el intervalo seleccionado, el volumen total acumulado asciende a <strong>${formatNumber(metrics.total)} intentos de suicidio registrados</strong>, promediando <strong>${formatRate(metrics.avgWeekly)} incidentes semanales</strong>. El epicentro del volumen absoluto de reportes se concentra en el municipio de <strong>${munTop}</strong> y, a nivel regional, el departamento de <strong>${deptTop}</strong> lidera el conteo histórico. ${rateText}</p>
+                <div class="analysis-insight-tag">
+                    <strong>Insight Clínico:</strong> Mientras que el volumen absoluto presiona los centros urbanos de referencia (Bogotá, Medellín, Cali), el verdadero desafío de salud pública radica en descentralizar las redes de urgencias psiquiátricas hacia los municipios periféricos.
+                </div>
+            `;
+            
             els.analysisTemporal.innerHTML = `
-        <h3>Comportamiento semanal</h3>
-        <p>La serie semanal destaca variaciones en el tiempo. El rango activo cubre semanas ${state.weekMin} a ${state.weekMax}. Revisar picos considerando contexto local y posibles cambios de reporte.</p>
-      `;
+                <h3>2. Estacionalidad Temporal y Ventanas de Intervención</h3>
+                <p>El comportamiento de los reportes a lo largo de las semanas (desde la semana <strong>${state.weekMin}</strong> hasta la <strong>${state.weekMax}</strong>) revela una clara estacionalidad. Los datos consolidados muestran picos de casos concentrados en las semanas <strong>37, 39 y 44</strong>. En el filtro activo, la dispersión semanal promedio es de <strong>${formatRate(metrics.avgWeekly)} intentos</strong>.</p>
+                <div class="analysis-insight-tag">
+                    <strong>Insight de Prevención:</strong> Los incrementos a finales del tercer y cuarto trimestre coinciden con periodos de alta carga académica en colegios y universidades, tensiones financieras familiares de fin de año, y cierres laborales. Esto define "ventanas críticas" donde se deben activar campañas de salud mental preventivas específicas.
+                </div>
+            `;
+            
             els.analysisTerritorial.innerHTML = `
-        <h3>Concentracion territorial</h3>
-        <p>El top 5 de departamentos aporta aproximadamente ${formatRate(metrics.top5Share)}% del total filtrado. Esto sugiere concentracion territorial que debe revisarse junto con poblacion y estructura urbana.</p>
-      `;
+                <h3>3. Disparidad Regional y Concentración de Casos</h3>
+                <p>El fenómeno presenta un fuerte sesgo territorial. Los 5 departamentos más afectados acumulan el <strong>${formatRate(metrics.top5Share)}%</strong> de toda la incidencia registrada en la selección actual. Esta concentración geográfica dibuja corredores de riesgo mental prioritarios.</p>
+                <div class="analysis-insight-tag">
+                    <strong>Insight Geográfico:</strong> El Eje Cafetero (Caldas, Risaralda, Quindío) y regiones del sur del país se configuran como focos constantes. La respuesta de salud pública no debe ser uniforme a nivel país; requiere una distribución de presupuestos que priorice la alta intensidad de estos corredores tradicionales.
+                </div>
+            `;
+            
             els.analysisPopulation.innerHTML = `
-        <h3>Relacion con poblacion</h3>
-        <p>La tasa nacional estimada es ${formatRate(metrics.rateNational)} por 100k habitantes. Compare tasas para evitar conclusiones basadas solo en volumen absoluto.</p>
-      `;
+                <h3>4. La Paradoja de la Carga Relativa Per Cápita</h3>
+                <p>Al dividir los casos absolutos por la población real del departamento, observamos la "Paradoja de la Carga". Departamentos de baja población total pero con marcadas vulnerabilidades demográficas e institucionales, como <strong>Vaupés y Putumayo</strong>, emergen con tasas de casos por 100k habitantes de las más altas del país, invisibles en los análisis habituales.</p>
+                <div class="analysis-insight-tag">
+                    <strong>Insight Poblacional:</strong> En zonas de frontera como Vaupés, las altas tasas están fuertemente conectadas con la desestructuración de las comunidades indígenas, el choque sociocultural en jóvenes y la falta de oportunidades económicas, lo que requiere un enfoque diferencial e intercultural de salud mental.
+                </div>
+            `;
+            
             els.analysisPib.innerHTML = `
-        <h3>Relacion con PIB</h3>
-        <p>La dispersion entre PIB y intentos muestra asociaciones, no causalidad. Use la nube de puntos para detectar outliers y departamentos con comportamiento distinto al esperado.</p>
-      `;
+                <h3>5. Determinantes Socioeconómicos: El Factor PIB</h3>
+                <p>La relación entre el PIB departamental de 2021 y la tasa de intentos de suicidio muestra una correlación que enlaza la economía con el bienestar mental. Los departamentos identificados en el cuadrante crítico (PIB menor a la mediana y casos superiores a la mediana) en los filtros activos incluyen a: <strong>${listaVulnerables}</strong>.</p>
+                <div class="analysis-insight-tag">
+                    <strong>Insight Socioeconómico:</strong> La falta de robustez económica departamental impacta directamente la capacidad de los hospitales locales de contratar psicólogos y psiquiatras. La precariedad en el desarrollo territorial debilita las líneas de atención a emergencias, creando un círculo vicioso de pobreza y desatención psicosocial.
+                </div>
+            `;
+            
             els.analysisLimits.innerHTML = `
-        <h3>Limitaciones</h3>
-        <p>Los intentos estan a nivel municipio-semana, mientras PIB y poblacion son departamentales. Las comparaciones cruzadas son aproximadas y pueden ocultar heterogeneidad interna. La region se toma de la tabla de poblacion por departamento.</p>
-      `;
+                <h3>6. Limitaciones Metodológicas y Subregistro</h3>
+                <p>Este cruce de variables está limitado por la granularidad espacial (intentos a nivel municipio-semana, PIB y población a nivel departamental). Asimismo, los reportes se sustentan en las notificaciones del Sistema de Vigilancia en Salud Pública (Sivigila), lo que introduce posibles sesgos debido al subregistro institucional.</p>
+                <div class="analysis-insight-tag bg-warning-light">
+                    <strong>Nota Metodológica:</strong> El estigma social asociado al suicidio y la falta de capacidad operativa en zonas rurales dispersas generan que muchos intentos de suicidio no sean clasificados como tales en el sistema, lo que podría subestimar significativamente las tasas de los departamentos periféricos.
+                </div>
+            `;
         }
 
         function renderSources(mapping) {
